@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arbitraje AR</title>
+    <title>Rulo AR</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -45,6 +45,25 @@
         padding: 16px;
         margin-bottom: 12px;
       }
+      .verdict-banner {
+        width: 100%;
+        border-radius: 10px;
+        padding: 18px 16px;
+        margin-bottom: 12px;
+        font-size: 1.3rem;
+        font-weight: 800;
+        text-align: center;
+        color: #f8fafc;
+      }
+      .verdict-optimal {
+        background: #16a34a;
+      }
+      .verdict-nonoptimal {
+        background: #dc2626;
+      }
+      .verdict-waiting {
+        background: #ca8a04;
+      }
       .grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -84,7 +103,19 @@
       }
       .steps {
         margin: 8px 0 0;
-        padding-left: 18px;
+        padding-left: 0;
+        list-style: none;
+      }
+      .steps li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .step-check {
+        color: #22c55e;
+        font-weight: bold;
+        line-height: 1.2;
       }
       .hidden {
         display: none;
@@ -119,11 +150,15 @@
   </head>
   <body>
     <div class="header">
-      <h1>Arbitraje AR</h1>
+      <h1>Rulo AR</h1>
       <div class="toolbar">
         <input id="capital" class="input" type="number" min="1000" step="1000" value="100000" />
         <button id="refresh" class="btn">Refrescar</button>
       </div>
+    </div>
+
+    <div id="verdict-banner" class="verdict-banner verdict-nonoptimal">
+      MERCADO NO PRESTABLE: RIESGO ALTO O PÉRDIDA
     </div>
 
     <div class="card">
@@ -176,7 +211,7 @@
         <button id="toggle-steps" class="btn" style="padding:6px 10px;font-size:12px">Ver pasos</button>
       </div>
       <div id="route" class="value">-</div>
-      <ol id="steps" class="steps hidden"></ol>
+      <ul id="steps" class="steps hidden"></ul>
       <div style="margin-top:10px;display:flex;gap:8px">
         <button id="save-sim" class="btn" style="background:#16a34a">Guardar simulación</button>
         <button id="resolve-last" class="btn" style="background:#7c3aed">Resolver última</button>
@@ -202,13 +237,72 @@
       let latestSnapshot = null;
       let stepsVisible = false;
 
+      const buildRouteSteps = (snapshot) => {
+        const best = snapshot?.bestOpportunity;
+        if (!best) return [];
+        const routeKey = `${best.buyMarket}->${best.sellMarket}`;
+        const brokerName = snapshot?.mepProviderName ?? "tu bróker";
+        const cryptoPlatform = snapshot?.cryptoProviderName ?? "plataforma cripto";
+        const bluePrice = `$ ${fmt(snapshot?.precioCompraBlue ?? 0)}`;
+
+        if (routeKey === "BLUE->CRYPTO") {
+          return [
+            [
+              { text: "Retirá pesos de tu banco/billetera y comprá Blue en una entidad de confianza (" },
+              { text: "Cueva", bold: true },
+              { text: ")." }
+            ],
+            [{ text: "Depositá los billetes en una cuenta bancaria o usá un exchange con carga de efectivo." }],
+            [
+              { text: "Comprá USDT en " },
+              { text: cryptoPlatform, bold: true },
+              { text: " usando el método P2P o transferencia." }
+            ],
+            [{ text: "Vendé los USDT por pesos o dólares para cerrar el ciclo." }]
+          ];
+        }
+
+        if (routeKey === "MEP->BLUE") {
+          return [
+            [
+              { text: "Transferí pesos al bróker " },
+              { text: brokerName, bold: true },
+              { text: "." }
+            ],
+            [{ text: "Comprá bonos AL30 y esperá el Parking de 24hs hábiles." }],
+            [{ text: "Vendé los bonos en dólares (AL30D) y transferilos a tu banco." }],
+            [
+              { text: "Retirá por ventanilla y vendé en el mercado Blue a " },
+              { text: bluePrice, bold: true },
+              { text: "." }
+            ]
+          ];
+        }
+
+        return (best.routeSteps ?? []).map((step) => [{ text: step }]);
+      };
+
       const renderSteps = () => {
         const steps = document.getElementById("steps");
         steps.innerHTML = "";
-        const routeSteps = latestSnapshot?.bestOpportunity?.routeSteps ?? [];
-        for (const step of routeSteps) {
+        const routeSteps = buildRouteSteps(latestSnapshot);
+        for (const stepParts of routeSteps) {
           const li = document.createElement("li");
-          li.textContent = step;
+          const check = document.createElement("span");
+          check.className = "step-check";
+          check.textContent = "✓";
+          li.appendChild(check);
+          const content = document.createElement("span");
+          for (const part of stepParts) {
+            if (part.bold) {
+              const strong = document.createElement("strong");
+              strong.textContent = part.text;
+              content.appendChild(strong);
+            } else {
+              content.appendChild(document.createTextNode(part.text));
+            }
+          }
+          li.appendChild(content);
           steps.appendChild(li);
         }
         steps.classList.toggle("hidden", !stepsVisible || routeSteps.length === 0);
@@ -220,6 +314,28 @@
         if (level === "VERDE") card.classList.add("gain-verde");
         else if (level === "AMARILLO") card.classList.add("gain-amarillo");
         else card.classList.add("gain-rojo");
+      };
+
+      const paintVerdictBanner = (data) => {
+        const banner = document.getElementById("verdict-banner");
+        banner.classList.remove("verdict-optimal", "verdict-nonoptimal", "verdict-waiting");
+        const rentability = Number(data?.bestOpportunity?.rentabilityPct ?? 0);
+        const spread = Number(data?.spreadActualPct ?? 0);
+
+        if (!data.marketOpen) {
+          banner.classList.add("verdict-waiting");
+          banner.textContent = "ESPERANDO APERTURA DE MERCADO (OPERACIÓN EN PAUSA)";
+          return;
+        }
+
+        if (rentability > 1.5 && spread >= 0) {
+          banner.classList.add("verdict-optimal");
+          banner.textContent = "OPORTUNIDAD DETECTADA: EL RULO ES RENTABLE";
+          return;
+        }
+
+        banner.classList.add("verdict-nonoptimal");
+        banner.textContent = "MERCADO NO PRESTABLE: RIESGO ALTO O PÉRDIDA";
       };
 
       const load = async (manual = false) => {
@@ -249,6 +365,7 @@
         document.getElementById("spread").textContent = `${fmt(data.spreadActualPct)}%`;
         document.getElementById("gain").textContent = `$ ${fmt(data.gananciaEstimada)}`;
         paintGainLevel(data.opportunityLevel);
+        paintVerdictBanner(data);
         document.getElementById("parking-risk").textContent = data.parkingRisk
           ? `Parking AL30 4h: ${fmt(data.parkingRisk.volatility4hPct)}% (${data.parkingRisk.riskLabel})`
           : "Parking AL30: sin datos suficientes";
