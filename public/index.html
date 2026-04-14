@@ -5,52 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rulo AR</title>
     <style>
+      :root {
+        color-scheme: dark;
+      }
       body {
-        font-family: Arial, sans-serif;
-        max-width: 960px;
-        margin: 24px auto;
-        padding: 0 16px 88px;
+        font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 20px 16px 88px;
         background: #0f172a;
         color: #e2e8f0;
       }
       .header {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+      .title-wrap h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 3.8vw, 2rem);
+      }
+      .title-wrap small {
+        color: #94a3b8;
       }
       .toolbar {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        flex-wrap: wrap;
       }
       .input {
         background: #0b1220;
-        border: 1px solid #334155;
+        border: 1px solid #3b4b68;
         color: #e2e8f0;
-        border-radius: 8px;
-        padding: 10px 12px;
+        border-radius: 10px;
+        padding: 11px 12px;
+        min-width: 160px;
       }
       .btn {
-        background: #2563eb;
+        background: linear-gradient(135deg, #1d4ed8, #2563eb);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 10px 14px;
+        border-radius: 10px;
+        padding: 11px 14px;
         cursor: pointer;
+        font-weight: 700;
       }
       .card {
-        background: #1e293b;
-        border-radius: 10px;
+        background: #172033;
+        border: 1px solid #263246;
+        border-radius: 14px;
         padding: 16px;
-        margin-bottom: 12px;
       }
       .verdict-banner {
         width: 100%;
-        border-radius: 10px;
-        padding: 18px 16px;
-        margin-bottom: 12px;
-        font-size: 1.3rem;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 14px;
+        font-size: clamp(1rem, 2.8vw, 1.25rem);
         font-weight: 800;
         text-align: center;
         color: #f8fafc;
@@ -64,18 +79,44 @@
       .verdict-waiting {
         background: #ca8a04;
       }
+      .featured-route {
+        margin-bottom: 14px;
+        background: linear-gradient(180deg, rgba(34, 197, 94, 0.18), rgba(12, 18, 32, 0.8));
+        border: 1px solid rgba(34, 197, 94, 0.5);
+      }
+      .featured-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .featured-chip {
+        background: #22c55e33;
+        color: #bbf7d0;
+        border: 1px solid #22c55e66;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .featured-route-label {
+        color: #cbd5e1;
+        font-size: 12px;
+      }
+      .route-main {
+        font-size: clamp(1.1rem, 3.4vw, 1.5rem);
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
       .grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-      }
-      @media (max-width: 720px) {
-        .grid {
-          grid-template-columns: 1fr;
-        }
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin-bottom: 14px;
       }
       .value {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         font-weight: bold;
       }
       .status {
@@ -101,24 +142,43 @@
       .gain-rojo {
         border-left: 4px solid #ef4444;
       }
+      .gain-card {
+        margin-bottom: 14px;
+      }
       .steps {
-        margin: 8px 0 0;
+        margin: 0;
         padding-left: 0;
         list-style: none;
+        display: grid;
+        gap: 10px;
       }
       .steps li {
         display: flex;
         align-items: flex-start;
-        gap: 8px;
-        margin-bottom: 8px;
+        gap: 10px;
+        background: rgba(15, 23, 42, 0.65);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 10px;
       }
       .step-check {
-        color: #22c55e;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #1d4ed8;
+        color: #dbeafe;
         font-weight: bold;
-        line-height: 1.2;
+        line-height: 1;
       }
-      .hidden {
-        display: none;
+      .featured-actions {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
       }
       .footer-alert {
         position: fixed;
@@ -146,11 +206,32 @@
         color: #93c5fd;
         text-decoration: none;
       }
+      #warning {
+        display: block;
+        margin-top: 4px;
+      }
+      @media (max-width: 640px) {
+        body {
+          padding: 14px 12px 98px;
+        }
+        .toolbar,
+        .toolbar .btn,
+        .toolbar .input {
+          width: 100%;
+        }
+        .featured-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="header">
-      <h1>Rulo AR</h1>
+      <div class="title-wrap">
+        <h1>Rulo AR</h1>
+        <small>Monitor de arbitraje MEP / Blue / Cripto en tiempo real</small>
+      </div>
       <div class="toolbar">
         <input id="capital" class="input" type="number" min="1000" step="1000" value="100000" />
         <button id="refresh" class="btn">Refrescar</button>
@@ -161,15 +242,28 @@
       MERCADO NO PRESTABLE: RIESGO ALTO O PÉRDIDA
     </div>
 
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>Estado de Mercado MEP</div>
-        <span id="market-state" class="status closed">CERRADO</span>
+    <div class="card featured-route">
+      <div class="featured-header">
+        <span class="featured-chip">RULO MÁS RENTABLE</span>
+        <small class="featured-route-label">Ejecutar pasos en orden para respetar la ruta</small>
       </div>
-      <small id="global-updated">Última actualización: -</small>
+      <div id="route" class="route-main">Sin oportunidad</div>
+      <ul id="steps" class="steps"></ul>
+      <div class="featured-actions">
+        <button id="save-sim" class="btn" style="background:linear-gradient(135deg,#15803d,#16a34a)">Guardar simulación</button>
+        <button id="resolve-last" class="btn" style="background:linear-gradient(135deg,#6d28d9,#7c3aed)">Resolver última</button>
+      </div>
+      <small id="simulation-note"></small>
     </div>
 
     <div class="grid">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>Estado de Mercado MEP</div>
+          <span id="market-state" class="status closed">CERRADO</span>
+        </div>
+        <small id="global-updated">Última actualización: -</small>
+      </div>
       <div class="card">
         <div>Precio Venta MEP</div>
         <div id="mep" class="value">-</div>
@@ -199,25 +293,12 @@
       </div>
     </div>
 
-    <div id="gain-card" class="card gain-rojo">
+    <div id="gain-card" class="card gain-rojo gain-card">
       <div>Ganancia estimada con tu capital</div>
       <div id="gain" class="value">-</div>
       <small id="parking-risk">Parking AL30: -</small>
     </div>
 
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>Mejor ruta</div>
-        <button id="toggle-steps" class="btn" style="padding:6px 10px;font-size:12px">Ver pasos</button>
-      </div>
-      <div id="route" class="value">-</div>
-      <ul id="steps" class="steps hidden"></ul>
-      <div style="margin-top:10px;display:flex;gap:8px">
-        <button id="save-sim" class="btn" style="background:#16a34a">Guardar simulación</button>
-        <button id="resolve-last" class="btn" style="background:#7c3aed">Resolver última</button>
-      </div>
-      <small id="simulation-note"></small>
-    </div>
     <small id="warning"></small>
 
     <div class="footer-alert">
@@ -235,7 +316,6 @@
       };
 
       let latestSnapshot = null;
-      let stepsVisible = false;
 
       const buildRouteSteps = (snapshot) => {
         const best = snapshot?.bestOpportunity;
@@ -286,11 +366,24 @@
         const steps = document.getElementById("steps");
         steps.innerHTML = "";
         const routeSteps = buildRouteSteps(latestSnapshot);
+        if (routeSteps.length === 0) {
+          const li = document.createElement("li");
+          const check = document.createElement("span");
+          check.className = "step-check";
+          check.textContent = "!";
+          li.appendChild(check);
+          const content = document.createElement("span");
+          content.textContent = "Sin pasos disponibles hasta detectar una oportunidad rentable.";
+          li.appendChild(content);
+          steps.appendChild(li);
+          return;
+        }
+        let stepNumber = 1;
         for (const stepParts of routeSteps) {
           const li = document.createElement("li");
           const check = document.createElement("span");
           check.className = "step-check";
-          check.textContent = "✓";
+          check.textContent = String(stepNumber++);
           li.appendChild(check);
           const content = document.createElement("span");
           for (const part of stepParts) {
@@ -305,7 +398,6 @@
           li.appendChild(content);
           steps.appendChild(li);
         }
-        steps.classList.toggle("hidden", !stepsVisible || routeSteps.length === 0);
       };
 
       const paintGainLevel = (level) => {
@@ -388,10 +480,6 @@
 
       document.getElementById("refresh").addEventListener("click", () => load(true));
       document.getElementById("capital").addEventListener("change", () => load());
-      document.getElementById("toggle-steps").addEventListener("click", () => {
-        stepsVisible = !stepsVisible;
-        renderSteps();
-      });
       document.getElementById("save-sim").addEventListener("click", async () => {
         const capital = Number(document.getElementById("capital").value || 100000);
         const res = await fetch("/api/simulations", {
