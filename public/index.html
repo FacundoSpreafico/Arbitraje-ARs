@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arbitraje AR</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 24px auto;
+        padding: 0 16px;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      .card {
+        background: #1e293b;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      .value {
+        font-size: 1.4rem;
+        font-weight: bold;
+      }
+      small {
+        color: #94a3b8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Arbitraje AR</h1>
+    <div class="card">
+      <div>Precio Compra MEP</div>
+      <div id="mep" class="value">-</div>
+    </div>
+    <div class="card">
+      <div>Precio Venta Blue</div>
+      <div id="blue" class="value">-</div>
+    </div>
+    <div class="card">
+      <div>Spread Actual</div>
+      <div id="spread" class="value">-</div>
+    </div>
+    <div class="card">
+      <div>Ganancia estimada por cada $100.000</div>
+      <div id="gain" class="value">-</div>
+    </div>
+    <div class="card">
+      <div>Mejor ruta</div>
+      <div id="route" class="value">-</div>
+    </div>
+    <div class="card">
+      <small id="warning"></small>
+    </div>
+    <script>
+      const fmt = (n) =>
+        new Intl.NumberFormat("es-AR", {
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2
+        }).format(n ?? 0);
+
+      const load = async () => {
+        const res = await fetch("/api/status");
+        const data = await res.json();
+        document.getElementById("mep").textContent = `$ ${fmt(data.precioCompraMEP)}`;
+        document.getElementById("blue").textContent = `$ ${fmt(data.precioVentaBlue)}`;
+        document.getElementById("spread").textContent = `${fmt(data.spreadActualPct)}%`;
+        document.getElementById("gain").textContent = `$ ${fmt(data.gananciaEstimadaPor100k)}`;
+        document.getElementById("route").textContent = data.bestOpportunity
+          ? `${data.bestOpportunity.buyMarket} -> ${data.bestOpportunity.sellMarket} (${fmt(data.bestOpportunity.rentabilityPct)}%)`
+          : "Sin oportunidad";
+        document.getElementById("warning").textContent = data.warning ?? "";
+      };
+
+      load();
+      setInterval(load, 60000);
+    </script>
+  </body>
+</html>
