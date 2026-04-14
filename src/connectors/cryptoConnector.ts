@@ -12,6 +12,15 @@ type BinanceResponse = {
   data?: BinanceAdvert[];
 };
 
+type BitsoTickerResponse = {
+  success?: boolean;
+  payload?: {
+    ask?: string;
+    bid?: string;
+    created_at?: string;
+  };
+};
+
 const parsePrice = (payload: BinanceResponse, side: "BUY" | "SELL"): number => {
   for (const advert of payload.data ?? []) {
     const parsed = Number(advert.adv?.price);
@@ -62,11 +71,44 @@ export const getCryptoQuote = async (): Promise<MarketQuote> => {
     fetchWithFallback("SELL")
   ]);
 
-  return {
+  const quote: MarketQuote = {
     market: "CRYPTO",
     source: "binance-p2p",
+    providerName: "Binance P2P",
+    operateUrl: "https://p2p.binance.com/",
     buy: parsePrice(sellPayload, "SELL"),
     sell: parsePrice(buyPayload, "BUY"),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    timestampIndividual: new Date().toISOString()
   };
+  return quote;
+};
+
+const getBitsoQuote = async (): Promise<MarketQuote | null> => {
+  const response = await fetch("https://api.bitso.com/v3/ticker/?book=usdt_ars");
+  if (!response.ok) {
+    return null;
+  }
+  const payload = (await response.json()) as BitsoTickerResponse;
+  const ask = Number(payload.payload?.ask);
+  const bid = Number(payload.payload?.bid);
+  if (!Number.isFinite(ask) || !Number.isFinite(bid)) {
+    return null;
+  }
+  const ts = payload.payload?.created_at ?? new Date().toISOString();
+  return {
+    market: "CRYPTO",
+    source: "bitso-spot",
+    providerName: "Bitso",
+    operateUrl: "https://bitso.com/ar/",
+    buy: bid,
+    sell: ask,
+    timestamp: ts,
+    timestampIndividual: ts
+  };
+};
+
+export const getCryptoQuotes = async (): Promise<MarketQuote[]> => {
+  const [binance, bitso] = await Promise.all([getCryptoQuote(), getBitsoQuote()]);
+  return [binance, bitso].filter(Boolean) as MarketQuote[];
 };

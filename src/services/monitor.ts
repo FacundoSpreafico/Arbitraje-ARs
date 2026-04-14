@@ -3,7 +3,7 @@ import { evaluateAllRoutes } from "../domain/arbitrage.js";
 import { assessParkingRisk } from "../domain/parkingRisk.js";
 import { sendTelegramAlert } from "./alertService.js";
 import { getAllQuotes, getParkingSeries } from "./marketData.js";
-import type { DashboardSnapshot } from "../types.js";
+import type { DashboardSnapshot, MarketCode, OpportunityLevel } from "../types.js";
 import { round } from "../utils/math.js";
 
 const complianceWarning =
@@ -11,47 +11,146 @@ const complianceWarning =
 
 let lastAlertFingerprint = "";
 
-const getQuote = (market: "MEP" | "BLUE", field: "buy" | "sell", fallback: number, quotes: Awaited<ReturnType<typeof getAllQuotes>>): number => {
-  const items = quotes.filter((q) => q.market === market);
-  if (items.length === 0) {
-    return fallback;
-  }
-  if (field === "sell") {
-    return Math.min(...items.map((q) => q.sell));
-  }
-  return Math.max(...items.map((q) => q.buy));
+const getQuote = (
+  market: MarketCode,
+  field: "buy" | "sell",
+  fallback: number,
+  quotes: Awaited<ReturnType<typeof getAllQuotes>>
+): number => {
+  const best = getBestQuote(market, field, quotes);
+  return best ? (field === "sell" ? best.sell : best.buy) : fallback;
 };
 
-export const evaluateSnapshot = async (): Promise<DashboardSnapshot> => {
+const getBestQuote = (
+  market: MarketCode,
+  field: "buy" | "sell",
+  quotes: Awaited<ReturnType<typeof getAllQuotes>>
+) => {
+  const items = quotes.filter((q) => q.market === market);
+  if (items.length === 0) {
+    return null;
+  }
+  if (field === "sell") {
+    return items.reduce((best, current) => (current.sell < best.sell ? current : best));
+  }
+  return items.reduce((best, current) => (current.buy > best.buy ? current : best));
+};
+
+const getLatestTimestamp = (
+  market: MarketCode,
+  quotes: Awaited<ReturnType<typeof getAllQuotes>>
+): string | undefined => {
+  const items = quotes.filter((q) => q.market === market);
+  if (items.length === 0) {
+    return undefined;
+  }
+  return items
+    .map((q) => q.timestampIndividual)
+    .sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+};
+
+const getOpportunityLevel = (rentabilityPct: number): OpportunityLevel => {
+  if (rentabilityPct > 2) {
+    return "VERDE";
+  }
+  if (rentabilityPct >= 0.5) {
+    return "AMARILLO";
+  }
+  return "ROJO";
+};
+
+const isMarketOpen = (date: Date): boolean => {
+  const day = date.getDay();
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  if (day === 0 || day === 6) {
+    return false;
+  }
+  const minutesFromMidnight = hour * 60 + minute;
+  return minutesFromMidnight >= 11 * 60 && minutesFromMidnight <= 16 * 60;
+};
+
+export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<DashboardSnapshot> => {
+  const investmentArs = Number.isFinite(investmentArsOverride)
+    ? Number(investmentArsOverride)
+    : config.investmentArs;
   const [quotes, al30Closes] = await Promise.all([getAllQuotes(), getParkingSeries()]);
   const opportunities = evaluateAllRoutes(
     quotes,
+    config.brokerCommissionPct,
+    config.marketRightsPct,
     config.feeBuyPct,
     config.feeSellPct,
+    config.p2pExitSpreadPct,
     config.taxPct,
-    config.investmentArs
+    investmentArs
   );
 
   const bestOpportunity = opportunities[0] ?? null;
   const parkingRisk =
-    bestOpportunity && bestOpportunity.buyMarket === "MEP" && al30Closes.length > 10
+    bestOpportunity && bestOpportunity.buyMarket === "MEP" && al30Closes.length > 2
       ? assessParkingRisk(
           bestOpportunity.rentabilityPct,
-          al30Closes.slice(-90),
+          al30Closes,
           config.alertThresholdPct
         )
       : null;
 
   const mepSell = getQuote("MEP", "sell", 0, quotes);
-  const blueSell = getQuote("BLUE", "sell", 0, quotes);
-  const spreadActualPct = mepSell > 0 ? ((blueSell / mepSell) - 1) * 100 : 0;
+  const blueBuy = getQuote("BLUE", "buy", 0, quotes);
+  const cryptoBuy = getQuote("CRYPTO", "buy", 0, quotes);
+  const mepBestQuote = getBestQuote("MEP", "sell", quotes);
+  const blueBestQuote = getBestQuote("BLUE", "buy", quotes);
+  const cryptoBestQuote = getBestQuote("CRYPTO", "buy", quotes);
+  const spreadActualPct = mepSell > 0 ? ((blueBuy / mepSell) - 1) * 100 : 0;
+  const quoteTimestamps: Partial<Record<MarketCode, string>> = {
+    MEP: getLatestTimestamp("MEP", quotes),
+    BLUE: getLatestTimestamp("BLUE", quotes),
+    CRYPTO: getLatestTimestamp("CRYPTO", quotes)
+  };
+  const now = new Date();
 
   return {
-    timestamp: new Date().toISOString(),
+    timestamp: now.toISOString(),
+    investmentArs,
     precioCompraMEP: round(mepSell, 2),
-    precioVentaBlue: round(blueSell, 2),
+    precioCompraBlue: round(blueBuy, 2),
+    precioCompraCripto: round(cryptoBuy, 2),
+    mepProviderName: mepBestQuote?.providerName ?? "N/D",
+    mepProviderUrl: mepBestQuote?.operateUrl,
+    cryptoProviderName: cryptoBestQuote?.providerName ?? "N/D",
+    cryptoProviderUrl: cryptoBestQuote?.operateUrl,
+    selectedQuotes: {
+      MEP: mepBestQuote
+        ? {
+            provider_name: mepBestQuote.providerName,
+            timestamp_individual: mepBestQuote.timestampIndividual,
+            operate_url: mepBestQuote.operateUrl,
+            is_average: mepBestQuote.isAverage
+          }
+        : undefined,
+      BLUE: blueBestQuote
+        ? {
+            provider_name: blueBestQuote.providerName,
+            timestamp_individual: blueBestQuote.timestampIndividual,
+            operate_url: blueBestQuote.operateUrl,
+            is_average: blueBestQuote.isAverage
+          }
+        : undefined,
+      CRYPTO: cryptoBestQuote
+        ? {
+            provider_name: cryptoBestQuote.providerName,
+            timestamp_individual: cryptoBestQuote.timestampIndividual,
+            operate_url: cryptoBestQuote.operateUrl,
+            is_average: cryptoBestQuote.isAverage
+          }
+        : undefined
+    },
     spreadActualPct: round(spreadActualPct, 4),
-    gananciaEstimadaPor100k: bestOpportunity?.gainPerInvestmentArs ?? 0,
+    gananciaEstimada: bestOpportunity?.gainPerInvestmentArs ?? 0,
+    opportunityLevel: getOpportunityLevel(bestOpportunity?.rentabilityPct ?? 0),
+    marketOpen: isMarketOpen(now),
+    quoteTimestamps,
     bestOpportunity,
     parkingRisk,
     warning: complianceWarning
@@ -66,7 +165,7 @@ const shouldAlert = (snapshot: DashboardSnapshot): boolean => {
   if (
     snapshot.bestOpportunity?.buyMarket === "MEP" &&
     snapshot.parkingRisk &&
-    !snapshot.parkingRisk.expectedToHold
+    (!snapshot.parkingRisk.expectedToHold || snapshot.parkingRisk.riskLabel === "ALTO")
   ) {
     return false;
   }
@@ -80,14 +179,14 @@ export const executeAlerting = async (snapshot: DashboardSnapshot): Promise<void
 
   const parkingText =
     snapshot.parkingRisk && snapshot.bestOpportunity.buyMarket === "MEP"
-      ? `Parking AL30: volatilidad ${snapshot.parkingRisk.dailyVolatilityPct}% - ajustada ${snapshot.parkingRisk.adjustedRentabilityPct}%`
+      ? `Parking AL30: volatilidad 4h ${snapshot.parkingRisk.volatility4hPct}% (${snapshot.parkingRisk.riskLabel}) - ajustada ${snapshot.parkingRisk.adjustedRentabilityPct}%`
       : "Parking AL30: no aplica";
 
   const message = [
     "Arbitraje AR - Oportunidad detectada",
     `${snapshot.bestOpportunity.buyMarket} -> ${snapshot.bestOpportunity.sellMarket}`,
     `Rentabilidad neta: ${snapshot.bestOpportunity.rentabilityPct}%`,
-    `Ganancia estimada por ARS ${config.investmentArs.toLocaleString("es-AR")}: ARS ${snapshot.bestOpportunity.gainPerInvestmentArs.toLocaleString("es-AR")}`,
+    `Ganancia estimada por ARS ${snapshot.investmentArs.toLocaleString("es-AR")}: ARS ${snapshot.bestOpportunity.gainPerInvestmentArs.toLocaleString("es-AR")}`,
     parkingText
   ].join("\n");
 

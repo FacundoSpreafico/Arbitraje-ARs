@@ -3,17 +3,23 @@ export type MarketCode = "MEP" | "BLUE" | "CRYPTO";
 export type MarketQuote = {
   market: MarketCode;
   source: string;
+  providerName: string;
+  operateUrl?: string;
+  isAverage?: boolean;
   buy: number;
   sell: number;
   timestamp: string;
+  timestampIndividual: string;
 };
 
 export type ArbitrageInput = {
   buySide: MarketQuote;
   sellSide: MarketQuote;
-  feeBuyPct: number;
-  feeSellPct: number;
+  buyCommissionPct: number;
+  sellCommissionPct: number;
+  marketRightsPct: number;
   taxPct: number;
+  p2pExitSpreadPct: number;
   investmentArs: number;
 };
 
@@ -26,21 +32,45 @@ export type ArbitrageOpportunity = {
   gainPerInvestmentArs: number;
   buySource: string;
   sellSource: string;
+  routeSteps: string[];
 };
 
 export type ParkingRisk = {
-  dailyVolatilityPct: number;
+  volatility4hPct: number;
   stressMovePct: number;
   adjustedRentabilityPct: number;
   expectedToHold: boolean;
+  riskLabel: "ALTO" | "MODERADO";
 };
+
+export type OpportunityLevel = "VERDE" | "AMARILLO" | "ROJO";
 
 export type DashboardSnapshot = {
   timestamp: string;
+  investmentArs: number;
   precioCompraMEP: number;
-  precioVentaBlue: number;
+  precioCompraBlue: number;
+  precioCompraCripto: number;
+  mepProviderName: string;
+  mepProviderUrl?: string;
+  cryptoProviderName: string;
+  cryptoProviderUrl?: string;
+  selectedQuotes: Partial<
+    Record<
+      MarketCode,
+      {
+        provider_name: string;
+        timestamp_individual: string;
+        operate_url?: string;
+        is_average?: boolean;
+      }
+    >
+  >;
   spreadActualPct: number;
-  gananciaEstimadaPor100k: number;
+  gananciaEstimada: number;
+  opportunityLevel: OpportunityLevel;
+  marketOpen: boolean;
+  quoteTimestamps: Partial<Record<MarketCode, string>>;
   bestOpportunity: ArbitrageOpportunity | null;
   parkingRisk: ParkingRisk | null;
   warning: string;

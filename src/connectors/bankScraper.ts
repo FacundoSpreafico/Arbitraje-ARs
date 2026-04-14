@@ -35,16 +35,20 @@ export const scrapeBankQuotes = async (): Promise<MarketQuote[]> => {
     {
       market: "MEP",
       source: "bank-scraper",
+      providerName: "Bank Scraper",
       buy: mepSell,
       sell: mepSell,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      timestampIndividual: new Date().toISOString()
     },
     {
       market: "BLUE",
       source: "bank-scraper",
+      providerName: "Bank Scraper",
       buy: blueBuy,
       sell: blueBuy,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      timestampIndividual: new Date().toISOString()
     }
   ];
 };

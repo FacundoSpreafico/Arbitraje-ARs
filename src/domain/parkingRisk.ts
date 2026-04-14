@@ -15,7 +15,7 @@ const logReturns = (closes: number[]): number[] => {
   return returns;
 };
 
-export const calculateDailyVolatilityPct = (closes: number[]): number =>
+export const calculateVolatilityPct = (closes: number[]): number =>
   stdDev(logReturns(closes)) * 100;
 
 export const assessParkingRisk = (
@@ -23,14 +23,16 @@ export const assessParkingRisk = (
   closes: number[],
   thresholdPct: number
 ): ParkingRisk => {
-  const dailyVolatilityPct = calculateDailyVolatilityPct(closes);
-  const stressMovePct = dailyVolatilityPct;
+  const volatility4hPct = calculateVolatilityPct(closes);
+  const stressMovePct = volatility4hPct;
   const adjustedRentabilityPct = baseRentabilityPct - stressMovePct;
+  const riskLabel: "ALTO" | "MODERADO" = volatility4hPct > 2 ? "ALTO" : "MODERADO";
 
   return {
-    dailyVolatilityPct: round(dailyVolatilityPct, 4),
+    volatility4hPct: round(volatility4hPct, 4),
     stressMovePct: round(stressMovePct, 4),
     adjustedRentabilityPct: round(adjustedRentabilityPct, 4),
-    expectedToHold: adjustedRentabilityPct >= thresholdPct
+    expectedToHold: adjustedRentabilityPct >= thresholdPct,
+    riskLabel
   };
 };

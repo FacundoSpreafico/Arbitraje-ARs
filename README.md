@@ -33,11 +33,13 @@ finanzas/
 
 ## Fórmulas implementadas
 
-- **CTA** = `Precio de Venta * (1 + comisión_compra + impuestos)`
-- **INV** = `Precio de Compra * (1 - comisión_venta)`
+- **CTA** = `Precio Venta de compra * (1 + comisión bróker + derechos mercado + impuestos)`
+- **INV** = `Precio Compra de salida * (1 - comisión venta - spread salida P2P)`
 - **Rentabilidad (%)** = `((INV / CTA) - 1) * 100`
 
-La alerta se dispara cuando rentabilidad neta > `ALERT_THRESHOLD_PCT` (default 1.5%) y, para rutas con compra en MEP, el ajuste por volatilidad AL30 mantiene la rentabilidad por encima del umbral.
+Normalización de rulo real: comparación con **MEP venta** y **Blue/Cripto compra**.
+
+La alerta se dispara cuando rentabilidad neta > `ALERT_THRESHOLD_PCT` (default 1.5%) y, para rutas con compra en MEP, exige que el parking AL30 no quede en riesgo alto.
 
 ## Uso
 
@@ -57,7 +59,8 @@ npm run dev
 3. Abrir:
 
 - Dashboard: `http://localhost:8080`
-- API: `http://localhost:8080/api/status`
+- API: `http://localhost:8080/api/status?capital=100000`
+- Simulaciones: `GET /api/simulations`, `POST /api/simulations`, `POST /api/simulations/:id/resolve`
 
 ## Cumplimiento
 

@@ -7,11 +7,37 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        max-width: 800px;
+        max-width: 960px;
         margin: 24px auto;
-        padding: 0 16px;
+        padding: 0 16px 88px;
         background: #0f172a;
         color: #e2e8f0;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .input {
+        background: #0b1220;
+        border: 1px solid #334155;
+        color: #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .btn {
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        cursor: pointer;
       }
       .card {
         background: #1e293b;
@@ -19,39 +45,148 @@
         padding: 16px;
         margin-bottom: 12px;
       }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      @media (max-width: 720px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
       .value {
         font-size: 1.4rem;
         font-weight: bold;
       }
+      .status {
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .open {
+        background: #22c55e33;
+        color: #86efac;
+      }
+      .closed {
+        background: #ef444433;
+        color: #fca5a5;
+      }
+      .gain-verde {
+        border-left: 4px solid #22c55e;
+      }
+      .gain-amarillo {
+        border-left: 4px solid #eab308;
+      }
+      .gain-rojo {
+        border-left: 4px solid #ef4444;
+      }
+      .steps {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+      .hidden {
+        display: none;
+      }
+      .footer-alert {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #111827;
+        border-top: 1px solid #334155;
+        padding: 10px 16px;
+        font-size: 13px;
+        color: #cbd5e1;
+      }
       small {
         color: #94a3b8;
+      }
+      .muted-source {
+        font-size: 12px;
+        color: #94a3b8;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 4px;
+      }
+      .muted-source a {
+        color: #93c5fd;
+        text-decoration: none;
       }
     </style>
   </head>
   <body>
-    <h1>Arbitraje AR</h1>
-    <div class="card">
-      <div>Precio Compra MEP</div>
-      <div id="mep" class="value">-</div>
+    <div class="header">
+      <h1>Arbitraje AR</h1>
+      <div class="toolbar">
+        <input id="capital" class="input" type="number" min="1000" step="1000" value="100000" />
+        <button id="refresh" class="btn">Refrescar</button>
+      </div>
     </div>
+
     <div class="card">
-      <div>Precio Venta Blue</div>
-      <div id="blue" class="value">-</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>Estado de Mercado MEP</div>
+        <span id="market-state" class="status closed">CERRADO</span>
+      </div>
+      <small id="global-updated">Última actualización: -</small>
     </div>
-    <div class="card">
-      <div>Spread Actual</div>
-      <div id="spread" class="value">-</div>
+
+    <div class="grid">
+      <div class="card">
+        <div>Precio Venta MEP</div>
+        <div id="mep" class="value">-</div>
+        <div class="muted-source">
+          <span id="mep-source">Fuente: -</span>
+          <a id="mep-operate" href="#" target="_blank" rel="noopener noreferrer">Ir a operar</a>
+        </div>
+        <small id="mep-ts">-</small>
+      </div>
+      <div class="card">
+        <div>Precio Compra Blue</div>
+        <div id="blue" class="value">-</div>
+        <small id="blue-ts">-</small>
+      </div>
+      <div class="card">
+        <div>Precio Compra Cripto (USDT/ARS)</div>
+        <div id="crypto" class="value">-</div>
+        <div class="muted-source">
+          <span id="crypto-source">Mejor plataforma: -</span>
+          <a id="crypto-operate" href="#" target="_blank" rel="noopener noreferrer">Ir a operar</a>
+        </div>
+        <small id="crypto-ts">-</small>
+      </div>
+      <div class="card">
+        <div>Spread Actual (Blue Compra vs MEP Venta)</div>
+        <div id="spread" class="value">-</div>
+      </div>
     </div>
-    <div class="card">
-      <div>Ganancia estimada por cada $100.000</div>
+
+    <div id="gain-card" class="card gain-rojo">
+      <div>Ganancia estimada con tu capital</div>
       <div id="gain" class="value">-</div>
+      <small id="parking-risk">Parking AL30: -</small>
     </div>
+
     <div class="card">
-      <div>Mejor ruta</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>Mejor ruta</div>
+        <button id="toggle-steps" class="btn" style="padding:6px 10px;font-size:12px">Ver pasos</button>
+      </div>
       <div id="route" class="value">-</div>
+      <ol id="steps" class="steps hidden"></ol>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button id="save-sim" class="btn" style="background:#16a34a">Guardar simulación</button>
+        <button id="resolve-last" class="btn" style="background:#7c3aed">Resolver última</button>
+      </div>
+      <small id="simulation-note"></small>
     </div>
-    <div class="card">
-      <small id="warning"></small>
+    <small id="warning"></small>
+
+    <div class="footer-alert">
+      Límite de 1 transferencia de USD mensual (Com. A 7072 BCRA). Verificar normativa vigente.
     </div>
     <script>
       const fmt = (n) =>
@@ -59,19 +194,111 @@
           maximumFractionDigits: 2,
           minimumFractionDigits: 2
         }).format(n ?? 0);
+      const toLocal = (iso) => {
+        if (!iso) return "-";
+        return new Date(iso).toLocaleString("es-AR");
+      };
 
-      const load = async () => {
-        const res = await fetch("/api/status");
+      let latestSnapshot = null;
+      let stepsVisible = false;
+
+      const renderSteps = () => {
+        const steps = document.getElementById("steps");
+        steps.innerHTML = "";
+        const routeSteps = latestSnapshot?.bestOpportunity?.routeSteps ?? [];
+        for (const step of routeSteps) {
+          const li = document.createElement("li");
+          li.textContent = step;
+          steps.appendChild(li);
+        }
+        steps.classList.toggle("hidden", !stepsVisible || routeSteps.length === 0);
+      };
+
+      const paintGainLevel = (level) => {
+        const card = document.getElementById("gain-card");
+        card.classList.remove("gain-verde", "gain-amarillo", "gain-rojo");
+        if (level === "VERDE") card.classList.add("gain-verde");
+        else if (level === "AMARILLO") card.classList.add("gain-amarillo");
+        else card.classList.add("gain-rojo");
+      };
+
+      const load = async (manual = false) => {
+        const capital = Number(document.getElementById("capital").value || 100000);
+        const res = await fetch(`/api/status?capital=${encodeURIComponent(capital)}`);
         const data = await res.json();
+        latestSnapshot = data;
         document.getElementById("mep").textContent = `$ ${fmt(data.precioCompraMEP)}`;
-        document.getElementById("blue").textContent = `$ ${fmt(data.precioVentaBlue)}`;
+        document.getElementById("blue").textContent = `$ ${fmt(data.precioCompraBlue)}`;
+        document.getElementById("crypto").textContent = `$ ${fmt(data.precioCompraCripto)}`;
+        document.getElementById("mep-source").textContent = `Fuente: ${data.mepProviderName ?? "-"}`;
+        document.getElementById("crypto-source").textContent = `Mejor plataforma: ${data.cryptoProviderName ?? "-"} (P2P)`;
+        const mepOperate = document.getElementById("mep-operate");
+        if (data.mepProviderUrl) {
+          mepOperate.href = data.mepProviderUrl;
+          mepOperate.style.display = "inline";
+        } else {
+          mepOperate.style.display = "none";
+        }
+        const cryptoOperate = document.getElementById("crypto-operate");
+        if (data.cryptoProviderUrl) {
+          cryptoOperate.href = data.cryptoProviderUrl;
+          cryptoOperate.style.display = "inline";
+        } else {
+          cryptoOperate.style.display = "none";
+        }
         document.getElementById("spread").textContent = `${fmt(data.spreadActualPct)}%`;
-        document.getElementById("gain").textContent = `$ ${fmt(data.gananciaEstimadaPor100k)}`;
+        document.getElementById("gain").textContent = `$ ${fmt(data.gananciaEstimada)}`;
+        paintGainLevel(data.opportunityLevel);
+        document.getElementById("parking-risk").textContent = data.parkingRisk
+          ? `Parking AL30 4h: ${fmt(data.parkingRisk.volatility4hPct)}% (${data.parkingRisk.riskLabel})`
+          : "Parking AL30: sin datos suficientes";
         document.getElementById("route").textContent = data.bestOpportunity
           ? `${data.bestOpportunity.buyMarket} -> ${data.bestOpportunity.sellMarket} (${fmt(data.bestOpportunity.rentabilityPct)}%)`
           : "Sin oportunidad";
+        const state = document.getElementById("market-state");
+        state.textContent = data.marketOpen ? "ABIERTO" : "CERRADO";
+        state.className = `status ${data.marketOpen ? "open" : "closed"}`;
+        document.getElementById("global-updated").textContent = `Última actualización: ${toLocal(data.timestamp)}`;
+        document.getElementById("mep-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.MEP)}`;
+        document.getElementById("blue-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.BLUE)}`;
+        document.getElementById("crypto-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.CRYPTO)}`;
         document.getElementById("warning").textContent = data.warning ?? "";
+        if (manual) {
+          document.getElementById("simulation-note").textContent = "Datos actualizados manualmente.";
+        }
+        renderSteps();
       };
+
+      document.getElementById("refresh").addEventListener("click", () => load(true));
+      document.getElementById("capital").addEventListener("change", () => load());
+      document.getElementById("toggle-steps").addEventListener("click", () => {
+        stepsVisible = !stepsVisible;
+        renderSteps();
+      });
+      document.getElementById("save-sim").addEventListener("click", async () => {
+        const capital = Number(document.getElementById("capital").value || 100000);
+        const res = await fetch("/api/simulations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ capital })
+        });
+        const data = await res.json();
+        document.getElementById("simulation-note").textContent = res.ok
+          ? `Simulación guardada (${data.id})`
+          : data.error ?? "No se pudo guardar simulación";
+      });
+      document.getElementById("resolve-last").addEventListener("click", async () => {
+        const listRes = await fetch("/api/simulations");
+        const list = await listRes.json();
+        const pending = (list.items ?? []).find((x) => x.status === "pending");
+        if (!pending) {
+          document.getElementById("simulation-note").textContent = "No hay simulaciones pendientes.";
+          return;
+        }
+        const res = await fetch(`/api/simulations/${pending.id}/resolve`, { method: "POST" });
+        const data = await res.json();
+        document.getElementById("simulation-note").textContent = `Simulación ${data.id} resuelta: ${fmt(data.realizedRentabilityPct)}% / $ ${fmt(data.realizedGainArs)}`;
+      });
 
       load();
       setInterval(load, 60000);

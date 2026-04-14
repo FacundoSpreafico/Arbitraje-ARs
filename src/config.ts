@@ -17,8 +17,11 @@ const toBoolean = (value: string | undefined, fallback = false): boolean => {
 export const config = {
   port: toNumber(process.env.PORT, 8080),
   refreshMs: toNumber(process.env.REFRESH_MS, 60_000),
-  feeBuyPct: toNumber(process.env.FEE_BUY_PCT, 0.008),
-  feeSellPct: toNumber(process.env.FEE_SELL_PCT, 0.006),
+  brokerCommissionPct: toNumber(process.env.BROKER_COMMISSION_PCT, 0.005),
+  marketRightsPct: toNumber(process.env.MARKET_RIGHTS_PCT, 0.0001),
+  feeBuyPct: toNumber(process.env.FEE_BUY_PCT, 0),
+  feeSellPct: toNumber(process.env.FEE_SELL_PCT, 0),
+  p2pExitSpreadPct: toNumber(process.env.P2P_EXIT_SPREAD_PCT, 0.01),
   taxPct: toNumber(process.env.TAX_PCT, 0),
   alertThresholdPct: toNumber(process.env.ALERT_THRESHOLD_PCT, 1.5),
   investmentArs: toNumber(process.env.INVESTMENT_ARS, 100_000),
@@ -36,7 +39,7 @@ export const config = {
     .filter(Boolean),
   al30HistoryUrl:
     process.env.AL30_HISTORY_URL ??
-    "https://stooq.com/q/d/l/?s=al30.ba&i=d",
+    "",
   bankScraperEnabled: toBoolean(process.env.BANK_SCRAPER_ENABLED, false),
   bankScraperUrl: process.env.BANK_SCRAPER_URL ?? "",
   bankMepSelector: process.env.BANK_MEP_SELECTOR ?? "",
