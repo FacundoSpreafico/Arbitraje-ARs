@@ -53,6 +53,8 @@ export type DashboardSnapshot = {
   precioCompraCripto: number;
   mepProviderName: string;
   mepProviderUrl?: string;
+  blueProviderName: string;
+  blueProviderUrl?: string;
   cryptoProviderName: string;
   cryptoProviderUrl?: string;
   selectedQuotes: Partial<

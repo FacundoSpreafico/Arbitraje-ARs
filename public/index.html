@@ -276,6 +276,10 @@
       <div class="card">
         <div>Precio Compra Blue</div>
         <div id="blue" class="value">-</div>
+        <div class="muted-source">
+          <span id="blue-source">Fuente: -</span>
+          <a id="blue-operate" href="#" target="_blank" rel="noopener noreferrer">Ir a operar</a>
+        </div>
         <small id="blue-ts">-</small>
       </div>
       <div class="card">
@@ -439,6 +443,7 @@
         document.getElementById("blue").textContent = `$ ${fmt(data.precioCompraBlue)}`;
         document.getElementById("crypto").textContent = `$ ${fmt(data.precioCompraCripto)}`;
         document.getElementById("mep-source").textContent = `Fuente: ${data.mepProviderName ?? "-"}`;
+        document.getElementById("blue-source").textContent = `Fuente: ${data.blueProviderName ?? "-"}`;
         document.getElementById("crypto-source").textContent = `Mejor plataforma: ${data.cryptoProviderName ?? "-"} (P2P)`;
         const mepOperate = document.getElementById("mep-operate");
         if (data.mepProviderUrl) {
@@ -446,6 +451,13 @@
           mepOperate.style.display = "inline";
         } else {
           mepOperate.style.display = "none";
+        }
+        const blueOperate = document.getElementById("blue-operate");
+        if (data.blueProviderUrl) {
+          blueOperate.href = data.blueProviderUrl;
+          blueOperate.style.display = "inline";
+        } else {
+          blueOperate.style.display = "none";
         }
         const cryptoOperate = document.getElementById("crypto-operate");
         if (data.cryptoProviderUrl) {

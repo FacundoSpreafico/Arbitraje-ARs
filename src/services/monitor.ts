@@ -36,6 +36,21 @@ const getBestQuote = (
   return items.reduce((best, current) => (current.buy > best.buy ? current : best));
 };
 
+const getCheapestQuote = (
+  market: MarketCode,
+  field: "buy" | "sell",
+  quotes: Awaited<ReturnType<typeof getAllQuotes>>
+) => {
+  const items = quotes.filter((q) => q.market === market);
+  if (items.length === 0) {
+    return null;
+  }
+  if (field === "sell") {
+    return items.reduce((best, current) => (current.sell < best.sell ? current : best));
+  }
+  return items.reduce((best, current) => (current.buy < best.buy ? current : best));
+};
+
 const getLatestTimestamp = (
   market: MarketCode,
   quotes: Awaited<ReturnType<typeof getAllQuotes>>
@@ -96,11 +111,13 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
         )
       : null;
 
-  const mepSell = getQuote("MEP", "sell", 0, quotes);
-  const blueBuy = getQuote("BLUE", "buy", 0, quotes);
+  const mepSellCheapestQuote = getCheapestQuote("MEP", "sell", quotes);
+  const blueBuyCheapestQuote = getCheapestQuote("BLUE", "buy", quotes);
+  const mepSell = mepSellCheapestQuote?.sell ?? 0;
+  const blueBuy = blueBuyCheapestQuote?.buy ?? 0;
   const cryptoBuy = getQuote("CRYPTO", "buy", 0, quotes);
-  const mepBestQuote = getBestQuote("MEP", "sell", quotes);
-  const blueBestQuote = getBestQuote("BLUE", "buy", quotes);
+  const mepBestQuote = mepSellCheapestQuote;
+  const blueBestQuote = blueBuyCheapestQuote;
   const cryptoBestQuote = getBestQuote("CRYPTO", "buy", quotes);
   const spreadActualPct = mepSell > 0 ? ((blueBuy / mepSell) - 1) * 100 : 0;
   const quoteTimestamps: Partial<Record<MarketCode, string>> = {
@@ -118,6 +135,8 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
     precioCompraCripto: round(cryptoBuy, 2),
     mepProviderName: mepBestQuote?.providerName ?? "N/D",
     mepProviderUrl: mepBestQuote?.operateUrl,
+    blueProviderName: blueBestQuote?.providerName ?? "N/D",
+    blueProviderUrl: blueBestQuote?.operateUrl,
     cryptoProviderName: cryptoBestQuote?.providerName ?? "N/D",
     cryptoProviderUrl: cryptoBestQuote?.operateUrl,
     selectedQuotes: {
