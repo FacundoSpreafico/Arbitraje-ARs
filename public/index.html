@@ -84,10 +84,56 @@
       }
 
       .toolbar {
-        display: flex;
+        display: grid;
+        gap: var(--space-sm);
+        min-width: min(560px, 100%);
+      }
+
+      .toolbar label {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 700;
+      }
+
+      .capital-row {
+        display: grid;
+        grid-template-columns: auto minmax(160px, 1fr) auto auto;
+        gap: var(--space-sm);
         align-items: center;
-        gap: var(--space-md);
+      }
+
+      .input-prefix {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 11px var(--space-md);
+        background: var(--surface-elevated);
+        color: var(--text-muted);
+        font-weight: 700;
+        min-width: 42px;
+        text-align: center;
+      }
+
+      .quick-capital {
+        display: flex;
         flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+      }
+
+      .chip-btn {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: var(--surface);
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .chip-btn:hover {
+        border-color: color-mix(in oklch, var(--brand) 42%, var(--border));
+        color: var(--text);
       }
 
       .input {
@@ -198,25 +244,6 @@
         border-color: color-mix(in oklch, var(--warn) 45%, var(--border));
         color: color-mix(in oklch, var(--warn) 62%, var(--text));
         background: color-mix(in oklch, var(--warn) 18%, var(--surface) 82%);
-      }
-
-      .macro-header {
-        margin-bottom: var(--space-lg);
-      }
-
-      .macro-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: var(--space-md);
-      }
-
-      .macro-item small {
-        display: block;
-      }
-
-      .macro-item .value {
-        font-family: "Sora", "Manrope", sans-serif;
-        font-size: 1.15rem;
       }
 
       .featured-route {
@@ -384,10 +411,18 @@
         body {
           padding: var(--space-lg) var(--space-md) 104px;
         }
-        .toolbar,
-        .toolbar .btn,
-        .toolbar .input {
+        .toolbar {
           width: 100%;
+        }
+        .capital-row {
+          grid-template-columns: auto 1fr;
+        }
+        .capital-row .btn {
+          grid-column: 1 / -1;
+          width: 100%;
+        }
+        .quick-capital {
+          gap: var(--space-xs);
         }
         .featured-header {
           flex-direction: column;
@@ -414,27 +449,21 @@
         <small>Monitor de arbitraje MEP / Blue / Cripto en tiempo real</small>
       </div>
       <div class="toolbar">
-        <input id="capital" class="input" type="number" min="1000" step="1000" value="100000" />
-        <button id="refresh" class="btn">Refrescar</button>
-      </div>
-    </div>
-
-    <div class="card macro-header">
-      <div class="macro-grid">
-        <div class="macro-item">
-          <small>Dólar oficial</small>
-          <div id="macro-oficial" class="value">-</div>
+        <label for="capital">Capital para simular (ARS)</label>
+        <div class="capital-row">
+          <span class="input-prefix">$</span>
+          <input id="capital" class="input" type="number" min="1000" step="1000" value="100000" />
+          <button id="apply-capital" class="btn btn-secondary">Aplicar monto</button>
+          <button id="refresh" class="btn">Actualizar ahora</button>
         </div>
-        <div class="macro-item">
-          <small>MEP (referencia)</small>
-          <div id="macro-mep" class="value">-</div>
-        </div>
-        <div class="macro-item">
-          <small>Riesgo país</small>
-          <div id="macro-riesgo" class="value">-</div>
+        <div class="quick-capital">
+          <button type="button" class="chip-btn" data-capital="100000">100k</button>
+          <button type="button" class="chip-btn" data-capital="250000">250k</button>
+          <button type="button" class="chip-btn" data-capital="500000">500k</button>
+          <button type="button" class="chip-btn" data-capital="1000000">1M</button>
+          <small>Tip: Enter aplica el monto y actualiza en vivo.</small>
         </div>
       </div>
-      <small id="macro-updated">Actualizado: -</small>
     </div>
 
     <div id="verdict-banner" class="verdict-banner verdict-nonoptimal">
@@ -678,15 +707,6 @@
         } else {
           cryptoOperate.style.display = "none";
         }
-        document.getElementById("macro-oficial").textContent =
-          data.macroQuotes ? `$ ${fmt(data.macroQuotes.oficial)}` : "-";
-        document.getElementById("macro-mep").textContent =
-          data.macroQuotes ? `$ ${fmt(data.macroQuotes.mep)}` : "-";
-        document.getElementById("macro-riesgo").textContent =
-          data.macroQuotes ? fmt(data.macroQuotes.riesgoPais) : "-";
-        document.getElementById("macro-updated").textContent = data.macroQuotes
-          ? `Actualizado: ${toLocal(data.macroQuotes.updated)}`
-          : "Actualizado: -";
         document.getElementById("spread").textContent = `${fmt(data.spreadActualPct)}%`;
         document.getElementById("gain").textContent = `$ ${fmt(data.gananciaEstimada)}`;
         paintGainLevel(data.opportunityLevel);
@@ -735,11 +755,30 @@
         };
       };
 
-      document.getElementById("refresh").addEventListener("click", () => load(true));
-      document.getElementById("capital").addEventListener("change", () => {
-        load();
+      const applyCapital = (manual = false) => {
+        load(manual);
         connectStatusStream();
+        if (manual) {
+          document.getElementById("simulation-note").textContent = "Monto aplicado y datos actualizados.";
+        }
+      };
+
+      document.getElementById("refresh").addEventListener("click", () => load(true));
+      document.getElementById("apply-capital").addEventListener("click", () => applyCapital(true));
+      document.getElementById("capital").addEventListener("change", () => applyCapital());
+      document.getElementById("capital").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          applyCapital(true);
+        }
       });
+      for (const quickButton of document.querySelectorAll(".chip-btn")) {
+        quickButton.addEventListener("click", () => {
+          const value = Number(quickButton.dataset.capital ?? 100000);
+          document.getElementById("capital").value = String(value);
+          applyCapital(true);
+        });
+      }
       document.getElementById("save-sim").addEventListener("click", async () => {
         const capital = Number(document.getElementById("capital").value || 100000);
         const res = await fetch("/api/simulations", {
