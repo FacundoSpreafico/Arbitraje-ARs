@@ -10,6 +10,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const parseCapital = (rawCapital: unknown): number | undefined => {
+  const capitalRaw = Number(rawCapital);
+  return Number.isFinite(capitalRaw) && capitalRaw > 0 ? capitalRaw : undefined;
+};
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicPath = path.resolve(__dirname, "..", "public");
@@ -21,8 +26,7 @@ app.get("/health", (_req, res) => {
 
 app.get("/api/status", async (_req, res) => {
   try {
-    const capitalRaw = Number(_req.query.capital);
-    const capital = Number.isFinite(capitalRaw) && capitalRaw > 0 ? capitalRaw : undefined;
+    const capital = parseCapital(_req.query.capital);
     const snapshot = await evaluateSnapshot(capital);
     res.json(snapshot);
   } catch (error) {
@@ -31,6 +35,56 @@ app.get("/api/status", async (_req, res) => {
       details: error instanceof Error ? error.message : String(error)
     });
   }
+});
+
+app.get("/api/status/stream", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders();
+
+  const capital = parseCapital(req.query.capital);
+  let inFlight = false;
+
+  const sendSnapshot = async (): Promise<void> => {
+    if (inFlight || res.writableEnded) {
+      return;
+    }
+    inFlight = true;
+    try {
+      const snapshot = await evaluateSnapshot(capital);
+      res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
+    } catch (error) {
+      const details = error instanceof Error ? error.message : String(error);
+      res.write(
+        `event: error\ndata: ${JSON.stringify({
+          error: "No fue posible obtener cotizaciones",
+          details
+        })}\n\n`
+      );
+    } finally {
+      inFlight = false;
+    }
+  };
+
+  void sendSnapshot();
+  const streamTimer = setInterval(() => {
+    void sendSnapshot();
+  }, config.refreshMs);
+  const keepAliveTimer = setInterval(() => {
+    if (!res.writableEnded) {
+      res.write(": keepalive\n\n");
+    }
+  }, 15_000);
+
+  req.on("close", () => {
+    clearInterval(streamTimer);
+    clearInterval(keepAliveTimer);
+    if (!res.writableEnded) {
+      res.end();
+    }
+  });
 });
 
 type SimulationRecord = {

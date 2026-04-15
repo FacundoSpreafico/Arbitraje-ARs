@@ -352,6 +352,7 @@
       };
 
       let latestSnapshot = null;
+      let statusStream = null;
 
       const buildRouteSteps = (snapshot) => {
         const best = snapshot?.bestOpportunity;
@@ -466,10 +467,7 @@
         banner.textContent = "MERCADO NO PRESTABLE: RIESGO ALTO O PÉRDIDA";
       };
 
-      const load = async (manual = false) => {
-        const capital = Number(document.getElementById("capital").value || 100000);
-        const res = await fetch(`/api/status?capital=${encodeURIComponent(capital)}`);
-        const data = await res.json();
+      const renderSnapshot = (data, manual = false) => {
         latestSnapshot = data;
         document.getElementById("mep").textContent = `$ ${fmt(data.precioCompraMEP)}`;
         document.getElementById("blue").textContent = `$ ${fmt(data.precioCompraBlue)}`;
@@ -531,8 +529,34 @@
         renderSteps();
       };
 
+      const load = async (manual = false) => {
+        const capital = Number(document.getElementById("capital").value || 100000);
+        const res = await fetch(`/api/status?capital=${encodeURIComponent(capital)}`);
+        const data = await res.json();
+        renderSnapshot(data, manual);
+      };
+
+      const connectStatusStream = () => {
+        if (!window.EventSource) {
+          return;
+        }
+        if (statusStream) {
+          statusStream.close();
+          statusStream = null;
+        }
+        const capital = Number(document.getElementById("capital").value || 100000);
+        statusStream = new EventSource(`/api/status/stream?capital=${encodeURIComponent(capital)}`);
+        statusStream.onmessage = (event) => {
+          const payload = JSON.parse(event.data);
+          renderSnapshot(payload);
+        };
+      };
+
       document.getElementById("refresh").addEventListener("click", () => load(true));
-      document.getElementById("capital").addEventListener("change", () => load());
+      document.getElementById("capital").addEventListener("change", () => {
+        load();
+        connectStatusStream();
+      });
       document.getElementById("save-sim").addEventListener("click", async () => {
         const capital = Number(document.getElementById("capital").value || 100000);
         const res = await fetch("/api/simulations", {
@@ -559,7 +583,7 @@
       });
 
       load();
-      setInterval(load, 60000);
+      connectStatusStream();
     </script>
   </body>
 </html>
