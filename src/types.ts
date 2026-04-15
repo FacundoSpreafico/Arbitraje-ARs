@@ -45,6 +45,13 @@ export type ParkingRisk = {
 
 export type OpportunityLevel = "VERDE" | "AMARILLO" | "ROJO";
 
+export type MacroQuotes = {
+  oficial: number;
+  mep: number;
+  riesgoPais: number;
+  updated: string;
+};
+
 export type DashboardSnapshot = {
   timestamp: string;
   investmentArs: number;
@@ -73,6 +80,7 @@ export type DashboardSnapshot = {
   opportunityLevel: OpportunityLevel;
   marketOpen: boolean;
   quoteTimestamps: Partial<Record<MarketCode, string>>;
+  macroQuotes: MacroQuotes | null;
   bestOpportunity: ArbitrageOpportunity | null;
   parkingRisk: ParkingRisk | null;
   warning: string;

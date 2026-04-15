@@ -206,6 +206,20 @@
         color: #93c5fd;
         text-decoration: none;
       }
+      .macro-header {
+        margin-bottom: 14px;
+      }
+      .macro-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+      .macro-item small {
+        display: block;
+      }
+      .macro-item .value {
+        font-size: 1.2rem;
+      }
       #warning {
         display: block;
         margin-top: 4px;
@@ -236,6 +250,24 @@
         <input id="capital" class="input" type="number" min="1000" step="1000" value="100000" />
         <button id="refresh" class="btn">Refrescar</button>
       </div>
+    </div>
+
+    <div class="card macro-header">
+      <div class="macro-grid">
+        <div class="macro-item">
+          <small>Dólar oficial</small>
+          <div id="macro-oficial" class="value">-</div>
+        </div>
+        <div class="macro-item">
+          <small>MEP (referencia)</small>
+          <div id="macro-mep" class="value">-</div>
+        </div>
+        <div class="macro-item">
+          <small>Riesgo país</small>
+          <div id="macro-riesgo" class="value">-</div>
+        </div>
+      </div>
+      <small id="macro-updated">Actualizado: -</small>
     </div>
 
     <div id="verdict-banner" class="verdict-banner verdict-nonoptimal">
@@ -466,6 +498,15 @@
         } else {
           cryptoOperate.style.display = "none";
         }
+        document.getElementById("macro-oficial").textContent =
+          data.macroQuotes ? `$ ${fmt(data.macroQuotes.oficial)}` : "-";
+        document.getElementById("macro-mep").textContent =
+          data.macroQuotes ? `$ ${fmt(data.macroQuotes.mep)}` : "-";
+        document.getElementById("macro-riesgo").textContent =
+          data.macroQuotes ? fmt(data.macroQuotes.riesgoPais) : "-";
+        document.getElementById("macro-updated").textContent = data.macroQuotes
+          ? `Actualizado: ${toLocal(data.macroQuotes.updated)}`
+          : "Actualizado: -";
         document.getElementById("spread").textContent = `${fmt(data.spreadActualPct)}%`;
         document.getElementById("gain").textContent = `$ ${fmt(data.gananciaEstimada)}`;
         paintGainLevel(data.opportunityLevel);

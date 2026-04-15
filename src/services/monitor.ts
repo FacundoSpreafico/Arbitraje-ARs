@@ -1,4 +1,5 @@
 import { config } from "../config.js";
+import { getMacroQuotes } from "../connectors/macroQuotesConnector.js";
 import { evaluateAllRoutes } from "../domain/arbitrage.js";
 import { assessParkingRisk } from "../domain/parkingRisk.js";
 import { sendTelegramAlert } from "./alertService.js";
@@ -89,7 +90,11 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
   const investmentArs = Number.isFinite(investmentArsOverride)
     ? Number(investmentArsOverride)
     : config.investmentArs;
-  const [quotes, al30Closes] = await Promise.all([getAllQuotes(), getParkingSeries()]);
+  const [quotes, al30Closes, macroQuotes] = await Promise.all([
+    getAllQuotes(),
+    getParkingSeries(),
+    getMacroQuotes()
+  ]);
   const opportunities = evaluateAllRoutes(
     quotes,
     config.brokerCommissionPct,
@@ -170,6 +175,7 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
     opportunityLevel: getOpportunityLevel(bestOpportunity?.rentabilityPct ?? 0),
     marketOpen: isMarketOpen(now),
     quoteTimestamps,
+    macroQuotes,
     bestOpportunity,
     parkingRisk,
     warning: complianceWarning

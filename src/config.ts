@@ -30,6 +30,9 @@ export const config = {
   dolaritoUrl:
     process.env.DOLARITO_URL ??
     "https://api.argentinadatos.com/v1/cotizaciones/dolares",
+  rendimientosCotizacionesUrl:
+    process.env.RENDIMIENTOS_COTIZACIONES_URL ??
+    "https://rendimientos.co/api/cotizaciones",
   binanceP2pUrl:
     process.env.BINANCE_P2P_URL ??
     "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search",
