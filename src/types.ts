@@ -58,6 +58,7 @@ export type DashboardSnapshot = {
   precioCompraMEP: number;
   precioCompraBlue: number;
   precioCompraCripto: number;
+  precioVentaCripto: number;
   mepProviderName: string;
   mepProviderUrl?: string;
   blueProviderName: string;

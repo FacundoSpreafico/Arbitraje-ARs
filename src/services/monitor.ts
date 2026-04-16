@@ -12,16 +12,6 @@ const complianceWarning =
 
 let lastAlertFingerprint = "";
 
-const getQuote = (
-  market: MarketCode,
-  field: "buy" | "sell",
-  fallback: number,
-  quotes: Awaited<ReturnType<typeof getAllQuotes>>
-): number => {
-  const best = getBestQuote(market, field, quotes);
-  return best ? (field === "sell" ? best.sell : best.buy) : fallback;
-};
-
 const getBestQuote = (
   market: MarketCode,
   field: "buy" | "sell",
@@ -116,15 +106,16 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
         )
       : null;
 
-  const mepSellCheapestQuote = getCheapestQuote("MEP", "sell", quotes);
+  const mepBuyCheapestQuote = getCheapestQuote("MEP", "sell", quotes);
   const blueBuyCheapestQuote = getCheapestQuote("BLUE", "buy", quotes);
-  const mepSell = mepSellCheapestQuote?.sell ?? 0;
+  const mepBuy = mepBuyCheapestQuote?.sell ?? 0;
   const blueBuy = blueBuyCheapestQuote?.buy ?? 0;
-  const cryptoBuy = getQuote("CRYPTO", "buy", 0, quotes);
-  const mepBestQuote = mepSellCheapestQuote;
+  const cryptoSellBestQuote = getBestQuote("CRYPTO", "buy", quotes);
+  const cryptoSell = cryptoSellBestQuote?.buy ?? 0;
+  const mepBestQuote = mepBuyCheapestQuote;
   const blueBestQuote = blueBuyCheapestQuote;
-  const cryptoBestQuote = getBestQuote("CRYPTO", "buy", quotes);
-  const spreadActualPct = mepSell > 0 ? ((blueBuy / mepSell) - 1) * 100 : 0;
+  const cryptoBestQuote = cryptoSellBestQuote;
+  const spreadActualPct = mepBuy > 0 ? ((cryptoSell / mepBuy) - 1) * 100 : 0;
   const quoteTimestamps: Partial<Record<MarketCode, string>> = {
     MEP: getLatestTimestamp("MEP", quotes),
     BLUE: getLatestTimestamp("BLUE", quotes),
@@ -135,9 +126,10 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
   return {
     timestamp: now.toISOString(),
     investmentArs,
-    precioCompraMEP: round(mepSell, 2),
+    precioCompraMEP: round(mepBuy, 2),
     precioCompraBlue: round(blueBuy, 2),
-    precioCompraCripto: round(cryptoBuy, 2),
+    precioCompraCripto: round(cryptoSell, 2),
+    precioVentaCripto: round(cryptoSell, 2),
     mepProviderName: mepBestQuote?.providerName ?? "N/D",
     mepProviderUrl: mepBestQuote?.operateUrl,
     blueProviderName: blueBestQuote?.providerName ?? "N/D",

@@ -551,7 +551,7 @@
         <small id="global-updated">Última actualización: -</small>
       </div>
       <div class="card">
-        <div>Precio Venta MEP</div>
+        <div>Precio Compra MEP</div>
         <div id="mep" class="value">-</div>
         <div class="muted-source">
           <span id="mep-source">Fuente: -</span>
@@ -560,25 +560,16 @@
         <small id="mep-ts">-</small>
       </div>
       <div class="card">
-        <div>Precio Compra Blue</div>
-        <div id="blue" class="value">-</div>
-        <div class="muted-source">
-          <span id="blue-source">Fuente: -</span>
-          <a id="blue-operate" href="#" target="_blank" rel="noopener noreferrer">Ir a operar</a>
-        </div>
-        <small id="blue-ts">-</small>
-      </div>
-      <div class="card">
-        <div>Precio Compra Cripto (USDT/ARS)</div>
+        <div>Precio Venta Cripto (USDT/ARS)</div>
         <div id="crypto" class="value">-</div>
         <div class="muted-source">
-          <span id="crypto-source">Mejor plataforma: -</span>
+          <span id="crypto-source">Mejor plataforma de venta: -</span>
           <a id="crypto-operate" href="#" target="_blank" rel="noopener noreferrer">Ir a operar</a>
         </div>
         <small id="crypto-ts">-</small>
       </div>
       <div class="card">
-        <div>Spread Actual (Blue Compra vs MEP Venta)</div>
+        <div>Spread Actual (Compra MEP vs Venta Cripto)</div>
         <div id="spread" class="value">-</div>
       </div>
     </div>
@@ -747,24 +738,15 @@
       const renderSnapshot = (data, manual = false) => {
         latestSnapshot = data;
         document.getElementById("mep").textContent = `$ ${fmt(data.precioCompraMEP)}`;
-        document.getElementById("blue").textContent = `$ ${fmt(data.precioCompraBlue)}`;
-        document.getElementById("crypto").textContent = `$ ${fmt(data.precioCompraCripto)}`;
+        document.getElementById("crypto").textContent = `$ ${fmt(data.precioVentaCripto ?? data.precioCompraCripto)}`;
         document.getElementById("mep-source").textContent = `Fuente: ${data.mepProviderName ?? "-"}`;
-        document.getElementById("blue-source").textContent = `Fuente: ${data.blueProviderName ?? "-"}`;
-        document.getElementById("crypto-source").textContent = `Mejor plataforma: ${data.cryptoProviderName ?? "-"} (P2P)`;
+        document.getElementById("crypto-source").textContent = `Mejor plataforma de venta: ${data.cryptoProviderName ?? "-"} (P2P)`;
         const mepOperate = document.getElementById("mep-operate");
         if (data.mepProviderUrl) {
           mepOperate.href = data.mepProviderUrl;
           mepOperate.style.display = "inline";
         } else {
           mepOperate.style.display = "none";
-        }
-        const blueOperate = document.getElementById("blue-operate");
-        if (data.blueProviderUrl) {
-          blueOperate.href = data.blueProviderUrl;
-          blueOperate.style.display = "inline";
-        } else {
-          blueOperate.style.display = "none";
         }
         const cryptoOperate = document.getElementById("crypto-operate");
         if (data.cryptoProviderUrl) {
@@ -789,7 +771,6 @@
         state.className = `status ${data.marketOpen ? "open" : "closed"}`;
         document.getElementById("global-updated").textContent = `Última actualización: ${toLocal(data.timestamp)}`;
         document.getElementById("mep-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.MEP)}`;
-        document.getElementById("blue-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.BLUE)}`;
         document.getElementById("crypto-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.CRYPTO)}`;
         document.getElementById("warning").textContent = data.warning ?? "";
         if (manual) {
