@@ -14,6 +14,30 @@ const toBoolean = (value: string | undefined, fallback = false): boolean => {
   return value.toLowerCase() === "true";
 };
 
+const toPctMap = (
+  raw: string | undefined,
+  fallback: Record<string, number>
+): Record<string, number> => {
+  if (!raw) {
+    return fallback;
+  }
+  const map: Record<string, number> = {};
+  const entries = raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  for (const entry of entries) {
+    const [nameRaw, valueRaw] = entry.split(":");
+    const name = (nameRaw ?? "").trim();
+    const value = Number((valueRaw ?? "").trim());
+    if (!name || !Number.isFinite(value) || value < 0) {
+      continue;
+    }
+    map[name] = value;
+  }
+  return Object.keys(map).length > 0 ? map : fallback;
+};
+
 export const config = {
   port: toNumber(process.env.PORT, 8080),
   refreshMs: toNumber(process.env.REFRESH_MS, 60_000),
@@ -40,6 +64,15 @@ export const config = {
     .split(",")
     .map((v) => v.trim())
     .filter(Boolean),
+  mepFeeByProviderPct: toPctMap(process.env.MEP_FEE_BY_PROVIDER_PCT, {
+    "Cocos Capital": 0.0045,
+    Balanz: 0.005,
+    InvertirOnline: 0.005
+  }),
+  cryptoSellFeeByProviderPct: toPctMap(process.env.CRYPTO_SELL_FEE_BY_PROVIDER_PCT, {
+    "Binance P2P": 0,
+    Bitso: 0.0065
+  }),
   al30HistoryUrl:
     process.env.AL30_HISTORY_URL ??
     "",

@@ -8,6 +8,8 @@ export type MarketQuote = {
   isAverage?: boolean;
   buy: number;
   sell: number;
+  buyFeePct?: number;
+  sellFeePct?: number;
   timestamp: string;
   timestampIndividual: string;
 };

@@ -98,20 +98,28 @@ const brokerProfiles: BrokerProfile[] = [
 ];
 
 const buildMepBrokerQuotes = (reference: MarketQuote): MarketQuote[] => {
-  const quotes: MarketQuote[] = brokerProfiles.map((broker) => ({
-    market: "MEP" as const,
-    source: "mep-brokers",
-    providerName: broker.name,
-    operateUrl: broker.operateUrl,
-    buy: Number((reference.buy * (1 + broker.offsetPct)).toFixed(2)),
-    sell: Number((reference.sell * (1 + broker.offsetPct)).toFixed(2)),
-    timestamp: reference.timestamp,
-    timestampIndividual: reference.timestampIndividual
-  }));
+  const quotes: MarketQuote[] = brokerProfiles.map((broker) => {
+    const brokerFeePct = config.mepFeeByProviderPct[broker.name] ?? config.brokerCommissionPct;
+    return {
+      market: "MEP" as const,
+      source: "mep-brokers",
+      providerName: broker.name,
+      operateUrl: broker.operateUrl,
+      buy: Number((reference.buy * (1 + broker.offsetPct)).toFixed(2)),
+      sell: Number((reference.sell * (1 + broker.offsetPct)).toFixed(2)),
+      buyFeePct: brokerFeePct,
+      sellFeePct: brokerFeePct,
+      timestamp: reference.timestamp,
+      timestampIndividual: reference.timestampIndividual
+    };
+  });
   const avgBuy =
     quotes.reduce((acc, item) => acc + item.buy, 0) / (quotes.length || 1);
   const avgSell =
     quotes.reduce((acc, item) => acc + item.sell, 0) / (quotes.length || 1);
+  const avgFeePct =
+    quotes.reduce((acc, item) => acc + (item.buyFeePct ?? config.brokerCommissionPct), 0) /
+    (quotes.length || 1);
   quotes.push({
     market: "MEP",
     source: "mep-brokers",
@@ -120,6 +128,8 @@ const buildMepBrokerQuotes = (reference: MarketQuote): MarketQuote[] => {
     isAverage: true,
     buy: Number(avgBuy.toFixed(2)),
     sell: Number(avgSell.toFixed(2)),
+    buyFeePct: Number(avgFeePct.toFixed(6)),
+    sellFeePct: Number(avgFeePct.toFixed(6)),
     timestamp: reference.timestamp,
     timestampIndividual: reference.timestampIndividual
   });

@@ -78,6 +78,8 @@ export const getCryptoQuote = async (): Promise<MarketQuote> => {
     operateUrl: "https://p2p.binance.com/",
     buy: parsePrice(sellPayload, "SELL"),
     sell: parsePrice(buyPayload, "BUY"),
+    buyFeePct: config.feeBuyPct,
+    sellFeePct: config.cryptoSellFeeByProviderPct["Binance P2P"] ?? config.feeSellPct,
     timestamp: new Date().toISOString(),
     timestampIndividual: new Date().toISOString()
   };
@@ -103,6 +105,8 @@ const getBitsoQuote = async (): Promise<MarketQuote | null> => {
     operateUrl: "https://bitso.com/ar/",
     buy: bid,
     sell: ask,
+    buyFeePct: config.feeBuyPct,
+    sellFeePct: config.cryptoSellFeeByProviderPct.Bitso ?? config.feeSellPct,
     timestamp: ts,
     timestampIndividual: ts
   };

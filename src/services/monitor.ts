@@ -4,28 +4,13 @@ import { evaluateAllRoutes } from "../domain/arbitrage.js";
 import { assessParkingRisk } from "../domain/parkingRisk.js";
 import { sendTelegramAlert } from "./alertService.js";
 import { getAllQuotes, getParkingSeries } from "./marketData.js";
-import type { DashboardSnapshot, MarketCode, OpportunityLevel } from "../types.js";
+import type { DashboardSnapshot, MarketCode, MarketQuote, OpportunityLevel } from "../types.js";
 import { round } from "../utils/math.js";
 
 const complianceWarning =
   "Advertencia regulatoria: validar límites de transferencias mensuales en USD según Com. A 7072 BCRA y normativa vigente.";
 
 let lastAlertFingerprint = "";
-
-const getBestQuote = (
-  market: MarketCode,
-  field: "buy" | "sell",
-  quotes: Awaited<ReturnType<typeof getAllQuotes>>
-) => {
-  const items = quotes.filter((q) => q.market === market);
-  if (items.length === 0) {
-    return null;
-  }
-  if (field === "sell") {
-    return items.reduce((best, current) => (current.sell < best.sell ? current : best));
-  }
-  return items.reduce((best, current) => (current.buy > best.buy ? current : best));
-};
 
 const getCheapestQuote = (
   market: MarketCode,
@@ -76,6 +61,16 @@ const isMarketOpen = (date: Date): boolean => {
   return minutesFromMidnight >= 11 * 60 && minutesFromMidnight <= 16 * 60;
 };
 
+const getMepEffectiveBuyCost = (quote: MarketQuote): number =>
+  quote.sell *
+  (1 +
+    (quote.buyFeePct ?? config.brokerCommissionPct) +
+    config.marketRightsPct +
+    config.taxPct);
+
+const getCryptoEffectiveSellProceeds = (quote: MarketQuote): number =>
+  quote.buy * (1 - (quote.sellFeePct ?? config.feeSellPct) - config.p2pExitSpreadPct);
+
 export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<DashboardSnapshot> => {
   const investmentArs = Number.isFinite(investmentArsOverride)
     ? Number(investmentArsOverride)
@@ -106,16 +101,32 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
         )
       : null;
 
-  const mepBuyCheapestQuote = getCheapestQuote("MEP", "sell", quotes);
+  const mepQuotes = quotes.filter((q) => q.market === "MEP");
+  const cryptoQuotes = quotes.filter((q) => q.market === "CRYPTO");
+  const mepBuyBestNetQuote =
+    mepQuotes.length > 0
+      ? mepQuotes.reduce((best, current) =>
+          getMepEffectiveBuyCost(current) < getMepEffectiveBuyCost(best) ? current : best
+        )
+      : null;
   const blueBuyCheapestQuote = getCheapestQuote("BLUE", "buy", quotes);
-  const mepBuy = mepBuyCheapestQuote?.sell ?? 0;
+  const mepBuy = mepBuyBestNetQuote?.sell ?? 0;
   const blueBuy = blueBuyCheapestQuote?.buy ?? 0;
-  const cryptoSellBestQuote = getBestQuote("CRYPTO", "buy", quotes);
+  const cryptoSellBestQuote =
+    cryptoQuotes.length > 0
+      ? cryptoQuotes.reduce((best, current) =>
+          getCryptoEffectiveSellProceeds(current) > getCryptoEffectiveSellProceeds(best)
+            ? current
+            : best
+        )
+      : null;
   const cryptoSell = cryptoSellBestQuote?.buy ?? 0;
-  const mepBestQuote = mepBuyCheapestQuote;
+  const mepBestQuote = mepBuyBestNetQuote;
   const blueBestQuote = blueBuyCheapestQuote;
   const cryptoBestQuote = cryptoSellBestQuote;
-  const spreadActualPct = mepBuy > 0 ? ((cryptoSell / mepBuy) - 1) * 100 : 0;
+  const mepBuyEffective = mepBestQuote ? getMepEffectiveBuyCost(mepBestQuote) : 0;
+  const cryptoSellEffective = cryptoBestQuote ? getCryptoEffectiveSellProceeds(cryptoBestQuote) : 0;
+  const spreadActualPct = mepBuyEffective > 0 ? ((cryptoSellEffective / mepBuyEffective) - 1) * 100 : 0;
   const quoteTimestamps: Partial<Record<MarketCode, string>> = {
     MEP: getLatestTimestamp("MEP", quotes),
     BLUE: getLatestTimestamp("BLUE", quotes),

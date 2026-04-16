@@ -37,7 +37,7 @@ finanzas/
 - **INV** = `Precio Compra de salida * (1 - comisión venta - spread salida P2P)`
 - **Rentabilidad (%)** = `((INV / CTA) - 1) * 100`
 
-Normalización de rulo real: comparación con **MEP compra** y **Cripto venta**.
+Normalización de rulo real: comparación con **MEP compra** y **Cripto venta** neteando comisiones por proveedor (según `MEP_FEE_BY_PROVIDER_PCT` y `CRYPTO_SELL_FEE_BY_PROVIDER_PCT`) más derechos/impuestos y `P2P_EXIT_SPREAD_PCT`.
 
 La alerta se dispara cuando rentabilidad neta > `ALERT_THRESHOLD_PCT` (default 1.5%) y, para rutas con compra en MEP, exige que el parking AL30 no quede en riesgo alto.
 
