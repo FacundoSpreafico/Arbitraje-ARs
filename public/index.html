@@ -49,7 +49,9 @@
         }
       }
 
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
       body {
         font-family: "Manrope", "Segoe UI", Tahoma, sans-serif;
@@ -61,283 +63,815 @@
         line-height: 1.5;
       }
 
-      /* Skeleton Loading */
-      .skeleton {
-        position: relative;
-        overflow: hidden;
-        background-color: var(--surface-elevated);
-        color: transparent !important;
-        border-radius: 4px;
-        min-width: 80px;
-        display: inline-block;
-      }
-      .skeleton::after {
-        content: "";
-        position: absolute;
-        top: 0; right: 0; bottom: 0; left: 0;
-        transform: translateX(-100%);
-        background-image: linear-gradient(90deg, rgba(255,255,255,0) 0, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0));
-        animation: shimmer 2s infinite;
-      }
-      @keyframes shimmer { 100% { transform: translateX(100%); } }
-
-      /* Flash Highlights */
-      @keyframes flash-up {
-        0% { background-color: color-mix(in oklch, var(--ok) 30%, transparent); }
-        100% { background-color: transparent; }
-      }
-      @keyframes flash-down {
-        0% { background-color: color-mix(in oklch, var(--danger) 30%, transparent); }
-        100% { background-color: transparent; }
-      }
-      .flash-up { animation: flash-up 1.2s ease-out; }
-      .flash-down { animation: flash-down 1.2s ease-out; }
-
       .header {
-        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-        gap: var(--space-lg); margin-bottom: var(--space-lg);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-lg);
+        margin-bottom: var(--space-lg);
       }
 
       .title-wrap h1 {
-        margin: 0; font-family: "Sora", sans-serif; font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -0.02em;
+        margin: 0;
+        font-family: "Sora", "Manrope", sans-serif;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        letter-spacing: -0.02em;
       }
 
-      .toolbar { display: grid; gap: var(--space-sm); min-width: min(560px, 100%); }
-      .capital-row { display: grid; grid-template-columns: auto minmax(160px, 1fr) auto auto; gap: var(--space-sm); align-items: center; }
+      .title-wrap small {
+        color: var(--text-muted);
+      }
+
+      .toolbar {
+        display: grid;
+        gap: var(--space-sm);
+        min-width: min(560px, 100%);
+      }
+
+      .toolbar label {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 700;
+      }
+
+      .capital-row {
+        display: grid;
+        grid-template-columns: auto minmax(160px, 1fr) auto auto;
+        gap: var(--space-sm);
+        align-items: center;
+      }
+
+      .input-prefix {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 11px var(--space-md);
+        background: var(--surface-elevated);
+        color: var(--text-muted);
+        font-weight: 700;
+        min-width: 42px;
+        text-align: center;
+      }
+
+      .quick-capital {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+      }
+
+      .chip-btn {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: var(--surface);
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .chip-btn:hover {
+        border-color: color-mix(in oklch, var(--brand) 42%, var(--border));
+        color: var(--text);
+      }
 
       .input {
-        background: var(--surface); border: 1px solid var(--border); color: var(--text);
-        border-radius: var(--radius-sm); padding: 11px var(--space-md); font: inherit;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: var(--radius-sm);
+        padding: 11px var(--space-md);
+        min-width: 160px;
+        font: inherit;
       }
 
       .btn {
         border: 1px solid color-mix(in oklch, var(--brand) 42%, var(--border));
-        border-radius: var(--radius-sm); padding: 11px 14px; cursor: pointer; font-weight: 700;
-        color: white; background: var(--brand); transition: all 160ms ease-out;
+        border-radius: var(--radius-sm);
+        padding: 11px 14px;
+        cursor: pointer;
+        font-weight: 700;
+        font: inherit;
+        color: oklch(0.98 0.004 255);
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklch, var(--brand) 92%, white 8%),
+          color-mix(in oklch, var(--brand-strong) 92%, black 8%)
+        );
+        transition: transform 160ms ease-out, box-shadow 180ms ease-out, filter 180ms ease-out;
       }
-      .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(0.5); }
-      .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-soft); }
 
-      .copy-btn {
-        background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-muted);
-        opacity: 0.4; transition: all 0.2s; display: inline-flex; align-items: center; vertical-align: middle;
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-soft);
+        filter: saturate(1.06);
       }
-      .copy-btn:hover { opacity: 1; color: var(--brand); }
 
-      .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-lg); box-shadow: var(--shadow-soft); }
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); }
-      .value { font-family: "Sora", sans-serif; font-size: 1.28rem; font-weight: 700; display: inline-block; padding: 2px 4px; border-radius: 4px; }
+      .btn:focus-visible,
+      .input:focus-visible,
+      .muted-source a:focus-visible {
+        outline: 2px solid color-mix(in oklch, var(--brand) 75%, white 25%);
+        outline-offset: 2px;
+      }
 
-      .live-dot { width: 8px; height: 8px; background-color: var(--ok); border-radius: 50%; position: relative; }
-      .live-dot::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--ok); border-radius: 50%; animation: pulse 2s infinite; }
-      @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 70% { transform: scale(2.5); opacity: 0; } 100% { transform: scale(2.5); opacity: 0; } }
-      .verdict-banner { width: 100%; border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-md); font-weight: 800; text-align: center; }
-      .verdict-optimal { background: var(--ok); color: white; }
-      .verdict-nonoptimal { background: var(--danger); color: white; }
-      .gain-card { margin-bottom: var(--space-lg); transition: all 180ms ease-out; }
-      .gain-verde { border-color: var(--ok); background: color-mix(in oklch, var(--ok) 10%, var(--surface)); }
-      .status { padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-      .open { background: color-mix(in oklch, var(--ok) 20%, transparent); color: var(--ok); }
-      .closed { background: color-mix(in oklch, var(--danger) 20%, transparent); color: var(--danger); }
-      .chip-btn { border: 1px solid var(--border); border-radius: 999px; padding: 6px 10px; background: var(--surface); color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; }
+      .live-clock {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        margin-top: var(--space-xs);
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .live-dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--ok);
+        border-radius: 50%;
+        position: relative;
+      }
+
+      .live-dot::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--ok);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+        70% {
+          transform: scale(2.5);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(2.5);
+          opacity: 0;
+        }
+      }
+
+      #clock-display {
+        font-weight: 700;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .btn-affirmative {
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklch, var(--ok) 90%, white 10%),
+          color-mix(in oklch, var(--ok) 82%, black 18%)
+        );
+        border-color: color-mix(in oklch, var(--ok) 45%, var(--border));
+      }
+
+      .btn-secondary {
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklch, var(--surface-elevated) 80%, var(--brand) 20%),
+          color-mix(in oklch, var(--surface) 85%, var(--brand-strong) 15%)
+        );
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: var(--space-lg);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .verdict-banner {
+        width: 100%;
+        border-radius: var(--radius-md);
+        padding: var(--space-lg);
+        margin-bottom: var(--space-md);
+        font-size: clamp(1rem, 2.4vw, 1.2rem);
+        font-weight: 800;
+        text-align: center;
+        color: oklch(0.98 0.005 255);
+        letter-spacing: 0.01em;
+      }
+
+      .verdict-optimal {
+        background: color-mix(in oklch, var(--ok) 82%, black 18%);
+      }
+
+      .verdict-nonoptimal {
+        background: color-mix(in oklch, var(--danger) 84%, black 16%);
+      }
+
+      .verdict-waiting {
+        background: color-mix(in oklch, var(--warn) 82%, black 18%);
+      }
+
+      .market-open-note {
+        margin-bottom: var(--space-lg);
+        padding: 10px var(--space-md);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        background: var(--surface-elevated);
+      }
+
+      .market-open-yes {
+        border-color: color-mix(in oklch, var(--ok) 45%, var(--border));
+        color: color-mix(in oklch, var(--ok) 55%, var(--text));
+        background: color-mix(in oklch, var(--ok) 18%, var(--surface) 82%);
+      }
+
+      .market-open-no {
+        border-color: color-mix(in oklch, var(--warn) 45%, var(--border));
+        color: color-mix(in oklch, var(--warn) 62%, var(--text));
+        background: color-mix(in oklch, var(--warn) 18%, var(--surface) 82%);
+      }
+
+      .featured-route {
+        margin-bottom: var(--space-lg);
+        background: color-mix(in oklch, var(--brand) 14%, var(--surface) 86%);
+        border: 1px solid color-mix(in oklch, var(--brand) 40%, var(--border));
+      }
+
+      .featured-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--space-md);
+        margin-bottom: var(--space-md);
+      }
+
+      .featured-chip {
+        background: color-mix(in oklch, var(--brand) 24%, transparent);
+        color: color-mix(in oklch, var(--brand) 42%, var(--text));
+        border: 1px solid color-mix(in oklch, var(--brand) 38%, var(--border));
+        border-radius: 999px;
+        padding: 6px var(--space-md);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .featured-route-label {
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .route-main {
+        font-family: "Sora", "Manrope", sans-serif;
+        font-size: clamp(1.08rem, 2.8vw, 1.46rem);
+        font-weight: 700;
+        margin-bottom: var(--space-md);
+      }
+
+      .steps {
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .steps li {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-md);
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: var(--space-md);
+      }
+
+      .step-check {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: color-mix(in oklch, var(--brand) 82%, black 18%);
+        color: oklch(0.98 0.004 255);
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .featured-actions {
+        margin-top: var(--space-md);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+      }
+
+      .value {
+        font-family: "Sora", "Manrope", sans-serif;
+        font-size: 1.28rem;
+        font-weight: 700;
+      }
+
+      .status {
+        padding: 4px var(--space-sm);
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .open {
+        background: color-mix(in oklch, var(--ok) 20%, transparent);
+        color: color-mix(in oklch, var(--ok) 65%, var(--text));
+      }
+
+      .closed {
+        background: color-mix(in oklch, var(--danger) 20%, transparent);
+        color: color-mix(in oklch, var(--danger) 65%, var(--text));
+      }
+
+      .gain-card {
+        margin-bottom: var(--space-lg);
+        transition: border-color 180ms ease-out, background-color 180ms ease-out;
+      }
+
+      .gain-verde {
+        border-color: color-mix(in oklch, var(--ok) 55%, var(--border));
+        background: color-mix(in oklch, var(--ok) 14%, var(--surface) 86%);
+      }
+
+      .gain-amarillo {
+        border-color: color-mix(in oklch, var(--warn) 52%, var(--border));
+        background: color-mix(in oklch, var(--warn) 14%, var(--surface) 86%);
+      }
+
+      .gain-rojo {
+        border-color: color-mix(in oklch, var(--danger) 55%, var(--border));
+        background: color-mix(in oklch, var(--danger) 12%, var(--surface) 88%);
+      }
+
+      .muted-source {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        gap: var(--space-sm);
+        align-items: center;
+        margin-top: var(--space-xs);
+      }
+
+      .muted-source a {
+        color: color-mix(in oklch, var(--brand) 66%, var(--text));
+        text-decoration: none;
+      }
+
+      #warning {
+        display: block;
+        margin-top: var(--space-xs);
+        color: var(--text-muted);
+      }
+
+      .footer-alert {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: color-mix(in oklch, var(--surface-elevated) 90%, var(--bg) 10%);
+        border-top: 1px solid var(--border);
+        padding: var(--space-md) var(--space-lg);
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      small {
+        color: var(--text-muted);
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: var(--space-lg) var(--space-md) 104px;
+        }
+        .toolbar {
+          width: 100%;
+        }
+        .capital-row {
+          grid-template-columns: auto 1fr;
+        }
+        .capital-row .btn {
+          grid-column: 1 / -1;
+          width: 100%;
+        }
+        .quick-capital {
+          gap: var(--space-xs);
+        }
+        .featured-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="header">
       <div class="title-wrap">
         <h1>Rulo AR</h1>
-        <div style="display:flex; align-items:center; gap:8px; color:var(--text-muted); font-size:13px">
+        <small>Monitor de arbitraje MEP / Blue / Cripto en tiempo real</small>
+        <div class="live-clock">
           <div class="live-dot"></div>
-          <span>TIEMPO REAL:</span> <span id="clock-display" style="font-weight:700; color:var(--text)">--:--:--</span>
+          <span>TIEMPO REAL:</span>
+          <span id="clock-display">--:--:--</span>
         </div>
       </div>
       <div class="toolbar">
-        <label style="font-size:12px; font-weight:700; color:var(--text-muted)">Capital para simular (ARS)</label>
+        <label for="capital">Capital para simular (ARS)</label>
         <div class="capital-row">
-          <input id="capital" class="input" type="number" value="100000" />
-          <button id="apply-capital" class="btn">Aplicar</button>
-          <button id="refresh" class="btn">Actualizar</button>
+          <span class="input-prefix">$</span>
+          <input id="capital" class="input" type="number" min="1000" step="1000" value="100000" />
+          <button id="apply-capital" class="btn btn-secondary">Aplicar monto</button>
+          <button id="refresh" class="btn">Actualizar ahora</button>
         </div>
         <div class="quick-capital">
-          <button class="chip-btn" data-capital="100000">100k</button>
-          <button class="chip-btn" data-capital="500000">500k</button>
-          <button class="chip-btn" data-capital="1000000">1M</button>
+          <button type="button" class="chip-btn" data-capital="100000">100k</button>
+          <button type="button" class="chip-btn" data-capital="250000">250k</button>
+          <button type="button" class="chip-btn" data-capital="500000">500k</button>
+          <button type="button" class="chip-btn" data-capital="1000000">1M</button>
+          <small>Tip: Enter aplica el monto y actualiza en vivo.</small>
         </div>
       </div>
     </div>
 
-    <div id="verdict-banner" class="verdict-banner verdict-nonoptimal">CARGANDO MERCADO...</div>
+    <div id="verdict-banner" class="verdict-banner verdict-nonoptimal">
+      MERCADO NO PRESTABLE: RIESGO ALTO O PÉRDIDA
+    </div>
+    <div id="market-open-note" class="market-open-note market-open-no">
+      Mercado cerrado: esperá el horario de operación para ejecutar el rulo.
+    </div>
 
-    <div class="card" style="margin-bottom: var(--space-lg); border-left: 4px solid var(--brand)">
-      <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px">RULO MÁS RENTABLE</div>
-      <div id="route" class="value skeleton" style="font-size:1.5rem">Cargando oportunidad...</div>
-      <ul id="steps" style="margin-top:16px; padding:0; list-style:none"></ul>
-      <div style="margin-top:16px; display:flex; gap:8px">
-        <button id="save-sim" class="btn">Guardar simulación</button>
-        <button id="resolve-last" class="btn" style="background:var(--surface); color:var(--text); border:1px solid var(--border)">Resolver última</button>
+    <div class="card featured-route">
+      <div class="featured-header">
+        <span class="featured-chip">RULO MÁS RENTABLE</span>
+        <small class="featured-route-label">Ejecutar pasos en orden para respetar la ruta</small>
       </div>
-      <small id="simulation-note" style="display:block; margin-top:8px; color:var(--text-muted)"></small>
+      <div id="route" class="route-main">Sin oportunidad</div>
+      <ul id="steps" class="steps"></ul>
+      <div class="featured-actions">
+        <button id="save-sim" class="btn btn-affirmative">Guardar simulación</button>
+        <button id="resolve-last" class="btn btn-secondary">Resolver última</button>
+      </div>
+      <small id="simulation-note"></small>
     </div>
 
     <div class="grid">
       <div class="card">
-        <div>Venta MEP <button class="copy-btn" onclick="copyVal('mep')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div>
-        <div id="mep" class="value skeleton">$ ---</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>Estado de Mercado MEP</div>
+          <span id="market-state" class="status closed">CERRADO</span>
+        </div>
+        <small id="global-updated">Última actualización: -</small>
       </div>
       <div class="card">
-        <div>Compra Blue <button class="copy-btn" onclick="copyVal('blue')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div>
-        <div id="blue" class="value skeleton">$ ---</div>
+        <div>Precio Venta MEP</div>
+        <div id="mep" class="value">-</div>
+        <div class="muted-source">
+          <span id="mep-source">Fuente: -</span>
+          <a id="mep-operate" href="#" target="_blank" rel="noopener noreferrer">Ir a operar</a>
+        </div>
+        <small id="mep-ts">-</small>
       </div>
       <div class="card">
-        <div>Compra Cripto <button class="copy-btn" onclick="copyVal('crypto')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div>
-        <div id="crypto" class="value skeleton">$ ---</div>
+        <div>Precio Compra Blue</div>
+        <div id="blue" class="value">-</div>
+        <div class="muted-source">
+          <span id="blue-source">Fuente: -</span>
+          <a id="blue-operate" href="#" target="_blank" rel="noopener noreferrer">Ir a operar</a>
+        </div>
+        <small id="blue-ts">-</small>
       </div>
       <div class="card">
-        <div>Spread Actual</div>
-        <div id="spread" class="value skeleton">-- %</div>
+        <div>Precio Compra Cripto (USDT/ARS)</div>
+        <div id="crypto" class="value">-</div>
+        <div class="muted-source">
+          <span id="crypto-source">Mejor plataforma: -</span>
+          <a id="crypto-operate" href="#" target="_blank" rel="noopener noreferrer">Ir a operar</a>
+        </div>
+        <small id="crypto-ts">-</small>
+      </div>
+      <div class="card">
+        <div>Spread Actual (Blue Compra vs MEP Venta)</div>
+        <div id="spread" class="value">-</div>
       </div>
     </div>
 
-    <div id="gain-card" class="card gain-card">
-      <div>Ganancia estimada</div>
-      <div id="gain" class="value skeleton" style="font-size:2rem">$ ---</div>
-      <div id="market-state" class="status closed" style="float:right">CERRADO</div>
+    <div id="gain-card" class="card gain-rojo gain-card">
+      <div>Ganancia estimada con tu capital</div>
+      <div id="gain" class="value">-</div>
+      <small id="parking-risk">Parking AL30: -</small>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <small id="warning"></small>
+
+    <div class="footer-alert">
+      Límite de 1 transferencia de USD mensual (Com. A 7072 BCRA). Verificar normativa vigente.
+    </div>
     <script>
-      const fmt = (n) => new Intl.NumberFormat("es-AR", { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(n ?? 0);
-
-      const copyVal = (id) => {
-        const text = document.getElementById(id).innerText.replace('$ ', '').replace(/\./g, '').replace(',', '.');
-        navigator.clipboard.writeText(text);
-        const btn = event.currentTarget;
-        const oldBody = btn.innerHTML;
-        btn.innerHTML = '✓';
-        setTimeout(() => btn.innerHTML = oldBody, 1000);
+      const fmt = (n) =>
+        new Intl.NumberFormat("es-AR", {
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2
+        }).format(n ?? 0);
+      const toLocal = (iso) => {
+        if (!iso) return "-";
+        return new Date(iso).toLocaleString("es-AR");
       };
 
-      const updateValueWithFlash = (id, newValue, isCurrency = true) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const oldText = el.innerText.replace(/[^0-9,]/g, '').replace(',', '.');
-        const oldVal = parseFloat(oldText) || 0;
-        const newVal = parseFloat(newValue) || 0;
+      const updateClock = () => {
+        const now = new Date();
+        document.getElementById("clock-display").textContent = now.toLocaleTimeString("es-AR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+      };
+      setInterval(updateClock, 1000);
+      updateClock();
 
-        el.classList.remove('skeleton', 'flash-up', 'flash-down');
-        el.innerText = isCurrency ? `$ ${fmt(newVal)}` : `${fmt(newVal)}%`;
+      let latestSnapshot = null;
+      let statusStream = null;
 
-        if (newVal > oldVal && oldVal > 0) el.classList.add('flash-up');
-        else if (newVal < oldVal && oldVal > 0) el.classList.add('flash-down');
+      const buildRouteSteps = (snapshot) => {
+        const best = snapshot?.bestOpportunity;
+        if (!best) return [];
+        const routeKey = `${best.buyMarket}->${best.sellMarket}`;
+        const brokerName = snapshot?.mepProviderName ?? "tu bróker";
+        const cryptoPlatform = snapshot?.cryptoProviderName ?? "plataforma cripto";
+        const bluePrice = `$ ${fmt(snapshot?.precioCompraBlue ?? 0)}`;
+
+        if (routeKey === "BLUE->CRYPTO") {
+          return [
+            [
+              { text: "Retirá pesos de tu banco/billetera y comprá Blue en una entidad de confianza (" },
+              { text: "Cueva", bold: true },
+              { text: ")." }
+            ],
+            [{ text: "Depositá los billetes en una cuenta bancaria o usá un exchange con carga de efectivo." }],
+            [
+              { text: "Comprá USDT en " },
+              { text: cryptoPlatform, bold: true },
+              { text: " usando el método P2P o transferencia." }
+            ],
+            [{ text: "Vendé los USDT por pesos o dólares para cerrar el ciclo." }]
+          ];
+        }
+
+        if (routeKey === "MEP->BLUE") {
+          return [
+            [
+              { text: "Transferí pesos al bróker " },
+              { text: brokerName, bold: true },
+              { text: "." }
+            ],
+            [{ text: "Comprá bonos AL30 y esperá el Parking de 24hs hábiles." }],
+            [{ text: "Vendé los bonos en dólares (AL30D) y transferilos a tu banco." }],
+            [
+              { text: "Retirá por ventanilla y vendé en el mercado Blue a " },
+              { text: bluePrice, bold: true },
+              { text: "." }
+            ]
+          ];
+        }
+
+        return (best.routeSteps ?? []).map((step) => [{ text: step }]);
       };
 
-      const renderSnapshot = (data) => {
-        updateValueWithFlash('mep', data.precioCompraMEP);
-        updateValueWithFlash('blue', data.precioCompraBlue);
-        updateValueWithFlash('crypto', data.precioCompraCripto);
-        updateValueWithFlash('spread', data.spreadActualPct, false);
-        updateValueWithFlash('gain', data.gananciaEstimada);
-
-        const routeEl = document.getElementById('route');
-        routeEl.classList.remove('skeleton');
-        routeEl.innerText = data.bestOpportunity
-          ? `${data.bestOpportunity.buyMarket} → ${data.bestOpportunity.sellMarket} (${fmt(data.bestOpportunity.rentabilityPct)}%)`
-          : "Sin oportunidad rentable";
-
-        const banner = document.getElementById('verdict-banner');
-        banner.className = `verdict-banner ${data.marketOpen ? 'verdict-optimal' : 'verdict-nonoptimal'}`;
-        banner.innerText = data.marketOpen ? "OPORTUNIDAD DETECTADA" : "MERCADO CERRADO O RIESGOSO";
-
-        const state = document.getElementById('market-state');
-        state.innerText = data.marketOpen ? "ABIERTO" : "CERRADO";
-        state.className = `status ${data.marketOpen ? 'open' : 'closed'}`;
+      const renderSteps = () => {
+        const steps = document.getElementById("steps");
+        steps.innerHTML = "";
+        const routeSteps = buildRouteSteps(latestSnapshot);
+        if (routeSteps.length === 0) {
+          const li = document.createElement("li");
+          const check = document.createElement("span");
+          check.className = "step-check";
+          check.textContent = "!";
+          li.appendChild(check);
+          const content = document.createElement("span");
+          content.textContent = "Sin pasos disponibles hasta detectar una oportunidad rentable.";
+          li.appendChild(content);
+          steps.appendChild(li);
+          return;
+        }
+        let stepNumber = 1;
+        for (const stepParts of routeSteps) {
+          const li = document.createElement("li");
+          const check = document.createElement("span");
+          check.className = "step-check";
+          check.textContent = String(stepNumber++);
+          li.appendChild(check);
+          const content = document.createElement("span");
+          for (const part of stepParts) {
+            if (part.bold) {
+              const strong = document.createElement("strong");
+              strong.textContent = part.text;
+              content.appendChild(strong);
+            } else {
+              content.appendChild(document.createTextNode(part.text));
+            }
+          }
+          li.appendChild(content);
+          steps.appendChild(li);
+        }
       };
 
-      const setBtnLoading = (id, loading) => {
-        const btn = document.getElementById(id);
-        if (loading) {
-          btn.dataset.oldText = btn.innerText;
-          btn.innerText = 'Cargando...';
-          btn.disabled = true;
+      const paintGainLevel = (level) => {
+        const card = document.getElementById("gain-card");
+        card.classList.remove("gain-verde", "gain-amarillo", "gain-rojo");
+        if (level === "VERDE") card.classList.add("gain-verde");
+        else if (level === "AMARILLO") card.classList.add("gain-amarillo");
+        else card.classList.add("gain-rojo");
+      };
+
+      const paintVerdictBanner = (data) => {
+        const banner = document.getElementById("verdict-banner");
+        banner.classList.remove("verdict-optimal", "verdict-nonoptimal", "verdict-waiting");
+        const rentability = Number(data?.bestOpportunity?.rentabilityPct ?? 0);
+        const spread = Number(data?.spreadActualPct ?? 0);
+
+        if (!data.marketOpen) {
+          banner.classList.add("verdict-waiting");
+          banner.textContent = "ESPERANDO APERTURA DE MERCADO (OPERACIÓN EN PAUSA)";
+          return;
+        }
+
+        if (rentability > 1.5 && spread >= 0) {
+          banner.classList.add("verdict-optimal");
+          banner.textContent = "OPORTUNIDAD DETECTADA: EL RULO ES RENTABLE";
+          return;
+        }
+
+        banner.classList.add("verdict-nonoptimal");
+        banner.textContent = "MERCADO NO PRESTABLE: RIESGO ALTO O PÉRDIDA";
+      };
+
+      const paintMarketOpenNote = (data) => {
+        const note = document.getElementById("market-open-note");
+        note.classList.remove("market-open-yes", "market-open-no");
+        if (data.marketOpen) {
+          note.classList.add("market-open-yes");
+          note.textContent = "Mercado abierto: podés operar ahora.";
+          return;
+        }
+        note.classList.add("market-open-no");
+        note.textContent = "Mercado cerrado: esperá el horario de operación para ejecutar el rulo.";
+      };
+
+      const renderSnapshot = (data, manual = false) => {
+        latestSnapshot = data;
+        document.getElementById("mep").textContent = `$ ${fmt(data.precioCompraMEP)}`;
+        document.getElementById("blue").textContent = `$ ${fmt(data.precioCompraBlue)}`;
+        document.getElementById("crypto").textContent = `$ ${fmt(data.precioCompraCripto)}`;
+        document.getElementById("mep-source").textContent = `Fuente: ${data.mepProviderName ?? "-"}`;
+        document.getElementById("blue-source").textContent = `Fuente: ${data.blueProviderName ?? "-"}`;
+        document.getElementById("crypto-source").textContent = `Mejor plataforma: ${data.cryptoProviderName ?? "-"} (P2P)`;
+        const mepOperate = document.getElementById("mep-operate");
+        if (data.mepProviderUrl) {
+          mepOperate.href = data.mepProviderUrl;
+          mepOperate.style.display = "inline";
         } else {
-          btn.innerText = btn.dataset.oldText || btn.innerText;
-          btn.disabled = false;
+          mepOperate.style.display = "none";
         }
-      };
-
-      const load = async () => {
-        const cap = document.getElementById('capital').value;
-        try {
-          const res = await fetch(`/api/status?capital=${cap}`);
-          const data = await res.json();
-          renderSnapshot(data);
-        } catch (e) {
-          console.error("Error al cargar datos:", e);
+        const blueOperate = document.getElementById("blue-operate");
+        if (data.blueProviderUrl) {
+          blueOperate.href = data.blueProviderUrl;
+          blueOperate.style.display = "inline";
+        } else {
+          blueOperate.style.display = "none";
         }
-      };
-
-      document.getElementById('refresh').onclick = async () => {
-        setBtnLoading('refresh', true);
-        await load();
-        setBtnLoading('refresh', false);
-      };
-
-      document.getElementById('apply-capital').onclick = async () => {
-        setBtnLoading('apply-capital', true);
-        await load();
-        setBtnLoading('apply-capital', false);
-      };
-
-      document.getElementById('save-sim').onclick = async () => {
-        setBtnLoading('save-sim', true);
-        const cap = document.getElementById('capital').value;
-        try {
-          await fetch("/api/simulations", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ capital: cap })
-          });
-          document.getElementById('simulation-note').innerText = "Simulación guardada con éxito.";
-        } catch (e) {
-          document.getElementById('simulation-note').innerText = "Error al guardar.";
+        const cryptoOperate = document.getElementById("crypto-operate");
+        if (data.cryptoProviderUrl) {
+          cryptoOperate.href = data.cryptoProviderUrl;
+          cryptoOperate.style.display = "inline";
+        } else {
+          cryptoOperate.style.display = "none";
         }
-        setBtnLoading('save-sim', false);
-      };
-
-      document.getElementById('resolve-last').onclick = async () => {
-        try {
-          const listRes = await fetch("/api/simulations");
-          const { items } = await listRes.json();
-          const pending = items.find(x => x.status === 'pending');
-          if (!pending) {
-            document.getElementById('simulation-note').innerText = "No hay simulaciones pendientes.";
-            return;
-          }
-
-          const res = await fetch(`/api/simulations/${pending.id}/resolve`, { method: "POST" });
-          const result = await res.json();
-
-          if (result.realizedGainArs > 0) {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#ffffff'] });
-          }
-          document.getElementById('simulation-note').innerText = `Resultado: +$${fmt(result.realizedGainArs)}`;
-        } catch (e) {
-          console.error("Error al resolver:", e);
+        document.getElementById("spread").textContent = `${fmt(data.spreadActualPct)}%`;
+        document.getElementById("gain").textContent = `$ ${fmt(data.gananciaEstimada)}`;
+        paintGainLevel(data.opportunityLevel);
+        paintVerdictBanner(data);
+        paintMarketOpenNote(data);
+        document.getElementById("parking-risk").textContent = data.parkingRisk
+          ? `Parking AL30 4h: ${fmt(data.parkingRisk.volatility4hPct)}% (${data.parkingRisk.riskLabel})`
+          : "Parking AL30: sin datos suficientes";
+        document.getElementById("route").textContent = data.bestOpportunity
+          ? `${data.bestOpportunity.buyMarket} -> ${data.bestOpportunity.sellMarket} (${fmt(data.bestOpportunity.rentabilityPct)}%)`
+          : "Sin oportunidad";
+        const state = document.getElementById("market-state");
+        state.textContent = data.marketOpen ? "ABIERTO" : "CERRADO";
+        state.className = `status ${data.marketOpen ? "open" : "closed"}`;
+        document.getElementById("global-updated").textContent = `Última actualización: ${toLocal(data.timestamp)}`;
+        document.getElementById("mep-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.MEP)}`;
+        document.getElementById("blue-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.BLUE)}`;
+        document.getElementById("crypto-ts").textContent = `Actualizado: ${toLocal(data.quoteTimestamps?.CRYPTO)}`;
+        document.getElementById("warning").textContent = data.warning ?? "";
+        if (manual) {
+          document.getElementById("simulation-note").textContent = "Datos actualizados manualmente.";
         }
+        renderSteps();
       };
 
-      for (const quickButton of document.querySelectorAll(".chip-btn")) {
-        quickButton.onclick = () => {
-          document.getElementById("capital").value = quickButton.dataset.capital;
-          load();
+      const load = async (manual = false) => {
+        const capital = Number(document.getElementById("capital").value || 100000);
+        const res = await fetch(`/api/status?capital=${encodeURIComponent(capital)}`);
+        const data = await res.json();
+        renderSnapshot(data, manual);
+      };
+
+      const connectStatusStream = () => {
+        if (!window.EventSource) {
+          return;
+        }
+        if (statusStream) {
+          statusStream.close();
+          statusStream = null;
+        }
+        const capital = Number(document.getElementById("capital").value || 100000);
+        statusStream = new EventSource(`/api/status/stream?capital=${encodeURIComponent(capital)}`);
+        statusStream.onmessage = (event) => {
+          const payload = JSON.parse(event.data);
+          renderSnapshot(payload);
         };
-      }
+      };
 
-      setInterval(() => {
-        document.getElementById('clock-display').innerText = new Date().toLocaleTimeString("es-AR");
-      }, 1000);
+      const applyCapital = (manual = false) => {
+        load(manual);
+        connectStatusStream();
+        if (manual) {
+          document.getElementById("simulation-note").textContent = "Monto aplicado y datos actualizados.";
+        }
+      };
+
+      document.getElementById("refresh").addEventListener("click", () => load(true));
+      document.getElementById("apply-capital").addEventListener("click", () => applyCapital(true));
+      document.getElementById("capital").addEventListener("change", () => applyCapital());
+      document.getElementById("capital").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          applyCapital(true);
+        }
+      });
+      for (const quickButton of document.querySelectorAll(".chip-btn")) {
+        quickButton.addEventListener("click", () => {
+          const value = Number(quickButton.dataset.capital ?? 100000);
+          document.getElementById("capital").value = String(value);
+          applyCapital(true);
+        });
+      }
+      document.getElementById("save-sim").addEventListener("click", async () => {
+        const capital = Number(document.getElementById("capital").value || 100000);
+        const res = await fetch("/api/simulations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ capital })
+        });
+        const data = await res.json();
+        document.getElementById("simulation-note").textContent = res.ok
+          ? `Simulación guardada (${data.id})`
+          : data.error ?? "No se pudo guardar simulación";
+      });
+      document.getElementById("resolve-last").addEventListener("click", async () => {
+        const listRes = await fetch("/api/simulations");
+        const list = await listRes.json();
+        const pending = (list.items ?? []).find((x) => x.status === "pending");
+        if (!pending) {
+          document.getElementById("simulation-note").textContent = "No hay simulaciones pendientes.";
+          return;
+        }
+        const res = await fetch(`/api/simulations/${pending.id}/resolve`, { method: "POST" });
+        const data = await res.json();
+        document.getElementById("simulation-note").textContent = `Simulación ${data.id} resuelta: ${fmt(data.realizedRentabilityPct)}% / $ ${fmt(data.realizedGainArs)}`;
+      });
 
       load();
+      connectStatusStream();
     </script>
   </body>
 </html>
