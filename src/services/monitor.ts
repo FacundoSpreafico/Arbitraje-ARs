@@ -58,7 +58,7 @@ const isMarketOpen = (date: Date): boolean => {
     return false;
   }
   const minutesFromMidnight = hour * 60 + minute;
-  return minutesFromMidnight >= 11 * 60 && minutesFromMidnight <= 16 * 60;
+  return minutesFromMidnight >= 10 * 60 + 30 && minutesFromMidnight <= 16 * 60;
 };
 
 const getMepEffectiveBuyCost = (quote: MarketQuote): number =>
