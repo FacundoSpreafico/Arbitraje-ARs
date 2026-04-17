@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Logo financiero">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2b6df6" />
+      <stop offset="100%" stop-color="#1f3f8d" />
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="116" height="116" rx="28" fill="url(#bg)" />
+  <g fill="#f4f8ff">
+    <rect x="29" y="73" width="14" height="24" rx="3" />
+    <rect x="51" y="61" width="14" height="36" rx="3" />
+    <rect x="73" y="48" width="14" height="49" rx="3" />
+  </g>
+  <path
+    d="M27 50c8-10 17-12 26-10 10 2 17 11 28 12 8 1 15-2 21-8"
+    fill="none"
+    stroke="#9dd8ff"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path d="M99 42l11 2-5 10" fill="none" stroke="#9dd8ff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

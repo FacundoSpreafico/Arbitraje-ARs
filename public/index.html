@@ -3,6 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1f2a3a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Rulo AR" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Rulo AR</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Sora:wght@600;700&display=swap");
@@ -77,6 +84,18 @@
         font-family: "Sora", "Manrope", sans-serif;
         font-size: clamp(1.5rem, 3vw, 2rem);
         letter-spacing: -0.02em;
+      }
+
+      .brand-title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+      }
+
+      .brand-logo {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
       }
 
       .title-wrap small {
@@ -495,7 +514,10 @@
   <body>
     <div class="header">
       <div class="title-wrap">
-        <h1>Rulo AR</h1>
+        <div class="brand-title">
+          <img class="brand-logo" src="/logo-finanzas.svg" alt="Logo financiero Rulo AR" />
+          <h1>Rulo AR</h1>
+        </div>
         <small>Monitor de arbitraje MEP / Blue / Cripto en tiempo real</small>
         <div class="live-clock">
           <div class="live-dot"></div>
@@ -853,6 +875,14 @@
 
       load();
       connectStatusStream();
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch((error) => {
+            console.error("No se pudo registrar el service worker", error);
+          });
+        });
+      }
     </script>
   </body>
 </html>
