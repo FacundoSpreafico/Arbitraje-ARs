@@ -18,11 +18,13 @@ export const calculateRentabilityPct = (inv: number, cta: number): number =>
   ((inv / cta) - 1) * 100;
 
 export const evaluateArbitrage = (input: ArbitrageInput): ArbitrageOpportunity => {
+  const marketRightsPct = input.buySide.market === "MEP" ? input.marketRightsPct : 0;
+  const taxPct = input.buySide.market === "MEP" ? input.taxPct : 0;
   const cta = calculateCTA(
     input.buySide.sell,
     input.buyCommissionPct,
-    input.marketRightsPct,
-    input.taxPct
+    marketRightsPct,
+    taxPct
   );
   const inv = calculateINV(
     input.sellSide.buy,
@@ -87,7 +89,8 @@ export const evaluateAllRoutes = (
   feeSellPct: number,
   p2pExitSpreadPct: number,
   taxPct: number,
-  investmentArs: number
+  investmentArs: number,
+  minRentabilityPct = Number.NEGATIVE_INFINITY
 ): ArbitrageOpportunity[] => {
   const buySideByMarket = bestByMarket(quotes, "buy");
   const sellSideByMarket = bestByMarket(quotes, "sell");
@@ -104,20 +107,25 @@ export const evaluateAllRoutes = (
       if (!buySide || !sellSide) {
         continue;
       }
-      const buyCommissionPct = buySide.market === "MEP" ? brokerCommissionPct : feeBuyPct;
-      const sellCommissionPct = sellSide.market === "MEP" ? brokerCommissionPct : feeSellPct;
-      opportunities.push(
-        evaluateArbitrage({
-          buySide,
-          sellSide,
-          buyCommissionPct,
-          sellCommissionPct,
-          marketRightsPct,
-          taxPct,
-          p2pExitSpreadPct,
-          investmentArs
-        })
-      );
+      const buyCommissionPct =
+        buySide.buyFeePct ??
+        (buySide.market === "MEP" ? brokerCommissionPct : feeBuyPct);
+      const sellCommissionPct =
+        sellSide.sellFeePct ??
+        (sellSide.market === "MEP" ? brokerCommissionPct : feeSellPct);
+      const opportunity = evaluateArbitrage({
+        buySide,
+        sellSide,
+        buyCommissionPct,
+        sellCommissionPct,
+        marketRightsPct,
+        taxPct,
+        p2pExitSpreadPct,
+        investmentArs
+      });
+      if (opportunity.rentabilityPct >= minRentabilityPct) {
+        opportunities.push(opportunity);
+      }
     }
   }
 

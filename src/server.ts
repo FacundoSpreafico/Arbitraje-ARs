@@ -3,6 +3,8 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "./config.js";
+import { evaluateAllRoutes } from "./domain/arbitrage.js";
+import { getAllQuotes } from "./services/marketData.js";
 import { evaluateSnapshot, executeAlerting } from "./services/monitor.js";
 import type { MarketCode } from "./types.js";
 
@@ -93,6 +95,8 @@ type SimulationRecord = {
   capital: number;
   buyMarket: MarketCode;
   sellMarket: MarketCode;
+  buySource: string;
+  sellSource: string;
   expectedRentabilityPct: number;
   expectedGainArs: number;
   status: "pending" | "resolved";
@@ -102,6 +106,11 @@ type SimulationRecord = {
 };
 
 const simulations: SimulationRecord[] = [];
+
+const getTradableQuotes = (quotes: Awaited<ReturnType<typeof getAllQuotes>>) => {
+  const tradable = quotes.filter((quote) => !quote.isAverage);
+  return tradable.length > 0 ? tradable : quotes;
+};
 
 app.get("/api/simulations", (_req, res) => {
   res.json({ items: simulations });
@@ -121,6 +130,8 @@ app.post("/api/simulations", async (req, res) => {
     capital,
     buyMarket: snapshot.bestOpportunity.buyMarket,
     sellMarket: snapshot.bestOpportunity.sellMarket,
+    buySource: snapshot.bestOpportunity.buySource,
+    sellSource: snapshot.bestOpportunity.sellSource,
     expectedRentabilityPct: snapshot.bestOpportunity.rentabilityPct,
     expectedGainArs: snapshot.bestOpportunity.gainPerInvestmentArs,
     status: "pending"
@@ -135,13 +146,24 @@ app.post("/api/simulations/:id/resolve", async (req, res) => {
     res.status(404).json({ error: "Simulación no encontrada" });
     return;
   }
-  const snapshot = await evaluateSnapshot(record.capital);
+  const quotes = getTradableQuotes(await getAllQuotes());
   const routeNow =
-    snapshot.bestOpportunity &&
-    snapshot.bestOpportunity.buyMarket === record.buyMarket &&
-    snapshot.bestOpportunity.sellMarket === record.sellMarket
-      ? snapshot.bestOpportunity
-      : null;
+    evaluateAllRoutes(
+      quotes,
+      config.brokerCommissionPct,
+      config.marketRightsPct,
+      config.feeBuyPct,
+      config.feeSellPct,
+      config.p2pExitSpreadPct,
+      config.taxPct,
+      record.capital
+    ).find(
+      (opportunity) =>
+        opportunity.buyMarket === record.buyMarket &&
+        opportunity.sellMarket === record.sellMarket &&
+        opportunity.buySource === record.buySource &&
+        opportunity.sellSource === record.sellSource
+    ) ?? null;
   record.status = "resolved";
   record.resolvedAt = new Date().toISOString();
   record.realizedRentabilityPct = routeNow?.rentabilityPct ?? 0;

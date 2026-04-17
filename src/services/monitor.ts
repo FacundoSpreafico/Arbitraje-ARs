@@ -12,6 +12,11 @@ const complianceWarning =
 
 let lastAlertFingerprint = "";
 
+const getTradableQuotes = (quotes: MarketQuote[]): MarketQuote[] => {
+  const tradable = quotes.filter((quote) => !quote.isAverage);
+  return tradable.length > 0 ? tradable : quotes;
+};
+
 const getCheapestQuote = (
   market: MarketCode,
   field: "buy" | "sell",
@@ -90,15 +95,17 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
     getParkingSeries(),
     getMacroQuotes()
   ]);
+  const tradableQuotes = getTradableQuotes(quotes);
   const opportunities = evaluateAllRoutes(
-    quotes,
+    tradableQuotes,
     config.brokerCommissionPct,
     config.marketRightsPct,
     config.feeBuyPct,
     config.feeSellPct,
     config.p2pExitSpreadPct,
     config.taxPct,
-    investmentArs
+    investmentArs,
+    config.alertThresholdPct
   );
 
   const bestOpportunity = opportunities[0] ?? null;
@@ -111,15 +118,15 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
         )
       : null;
 
-  const mepQuotes = quotes.filter((q) => q.market === "MEP");
-  const cryptoQuotes = quotes.filter((q) => q.market === "CRYPTO");
+  const mepQuotes = tradableQuotes.filter((q) => q.market === "MEP");
+  const cryptoQuotes = tradableQuotes.filter((q) => q.market === "CRYPTO");
   const mepBuyBestNetQuote =
     mepQuotes.length > 0
       ? mepQuotes.reduce((best, current) =>
           getMepEffectiveBuyCost(current) < getMepEffectiveBuyCost(best) ? current : best
         )
       : null;
-  const blueBuyCheapestQuote = getCheapestQuote("BLUE", "buy", quotes);
+  const blueBuyCheapestQuote = getCheapestQuote("BLUE", "buy", tradableQuotes);
   const mepBuy = mepBuyBestNetQuote?.sell ?? 0;
   const blueBuy = blueBuyCheapestQuote?.buy ?? 0;
   const cryptoSellBestQuote =
@@ -130,6 +137,7 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
             : best
         )
       : null;
+  const cryptoBuy = cryptoSellBestQuote?.sell ?? 0;
   const cryptoSell = cryptoSellBestQuote?.buy ?? 0;
   const mepBestQuote = mepBuyBestNetQuote;
   const blueBestQuote = blueBuyCheapestQuote;
@@ -149,7 +157,7 @@ export const evaluateSnapshot = async (investmentArsOverride?: number): Promise<
     investmentArs,
     precioCompraMEP: round(mepBuy, 2),
     precioCompraBlue: round(blueBuy, 2),
-    precioCompraCripto: round(cryptoSell, 2),
+    precioCompraCripto: round(cryptoBuy, 2),
     precioVentaCripto: round(cryptoSell, 2),
     mepProviderName: mepBestQuote?.providerName ?? "N/D",
     mepProviderUrl: mepBestQuote?.operateUrl,
@@ -228,7 +236,13 @@ export const executeAlerting = async (snapshot: DashboardSnapshot): Promise<void
     parkingText
   ].join("\n");
 
-  const fingerprint = `${snapshot.bestOpportunity.buyMarket}-${snapshot.bestOpportunity.sellMarket}-${snapshot.bestOpportunity.rentabilityPct}`;
+  const fingerprint = [
+    snapshot.bestOpportunity.buyMarket,
+    snapshot.bestOpportunity.sellMarket,
+    snapshot.bestOpportunity.buySource,
+    snapshot.bestOpportunity.sellSource,
+    snapshot.bestOpportunity.rentabilityPct
+  ].join("-");
   if (fingerprint === lastAlertFingerprint) {
     return;
   }
